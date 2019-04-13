@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 # Load bash script helper functions
-. ./scripts/helpers.bash
+. ./scripts/lib/helpers.bash
 
 usage() {
    printf "Usage --- \\n $ %s [ --full ] [ --force ]\\n
@@ -89,8 +89,9 @@ while true; do
          fi
          # Handle cleanup of data directory
          if $FULL; then
-            [[ -d $HOME/Library/Application\ Support/eosio ]] && INSTALL_PATHS+=("${HOME}/Library/Application\ Support/eosio")
-            [[ -d $HOME/.local/share/eosio ]] && INSTALL_PATHS+=("$HOME/.local/share/eosio")
+            ## Add both just to be safe
+            INSTALL_PATHS+=("${HOME}/Library/Application\ Support/eosio")
+            INSTALL_PATHS+=("$HOME/.local/share/eosio")
          fi
          # Arrays should return with newlines as Application\ Support will split into two
          OLDIFS=$IFS

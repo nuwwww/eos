@@ -20,7 +20,7 @@ TEST_LABEL="[uninstall]"
 @test "${TEST_LABEL} > Testing user prompts" {
   ## No y or no warning and re-prompt
   run bash -c "echo -e \"\nx\nx\nx\" | ./$SCRIPT_LOCATION"
-  ( [[ "${lines[3]}" == "Please type 'y' for yes or 'n' for no." ]] && [[ "${lines[2]}" == "Please type 'y' for yes or 'n' for no." ]] ) || exit
+  ( [[ "${lines[${#lines[@]}-1]}" == "Please type 'y' for yes or 'n' for no." ]] && [[ "${lines[${#lines[@]}-2]}" == "Please type 'y' for yes or 'n' for no." ]] ) || exit
   ## All yes pass
   run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
   [[ "${output##*$'\n'}" == "[EOSIO Removal Complete]" ]] || exit

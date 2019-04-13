@@ -15,12 +15,6 @@ avail_blks=$(df . | tail -1 | awk '{print $4}')
 DISK_TOTAL=$((total_blks / gbfactor ))
 DISK_AVAIL=$((avail_blks / gbfactor ))
 
-export HOMEBREW_NO_AUTO_UPDATE=1
-
-COUNT=1
-DISPLAY=""
-DEPS=""
-
 printf "\\nOS name: ${OS_NAME}\\n"
 printf "OS Version: ${OS_VER}\\n"
 printf "CPU speed: ${CPU_SPEED}Mhz\\n"
@@ -188,7 +182,7 @@ if [ ! -d $MONGO_C_DRIVER_ROOT ]; then
 	&& mkdir -p cmake-build \
 	&& cd cmake-build \
 	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DENABLE_BSON=ON -DENABLE_SSL=DARWIN -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
-	&& make -j"${JOBS}" \
+	&& make -j$JOBS \
 	&& make install \
 	&& cd ../.. \
 	&& rm mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz"
@@ -199,11 +193,11 @@ fi
 printf "${COLOR_CYAN}[Checking MongoDB C++ driver installation]${COLOR_NC}\\n"
 if [ "$(grep "Version:" $HOME/lib/pkgconfig/libmongocxx-static.pc 2>/dev/null | tr -s ' ' | awk '{print $2}' || true)" != $MONGO_CXX_DRIVER_VERSION ]; then
 	printf "Installing MongoDB C++ driver...\\n"
-	bash -c "curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r$MONGO_CXX_DRIVER_VERSION.tar.gz -o mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz \
+	execute bash -c "curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r${MONGO_CXX_DRIVER_VERSION}.tar.gz -o mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& tar -xzf mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
-	&& cd mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION/build \
+	&& cd mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}/build \
 	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
-	&& make -j"${JOBS}" VERBOSE=1 \
+	&& make -j$JOBS VERBOSE=1 \
 	&& make install \
 	&& cd ../.. \
 	&& rm -f mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz"

@@ -32,10 +32,20 @@ export DOXYGEN_ROOT=${SRC_LOCATION}/doxygen-${DOXYGEN_VERSION}
 export TINI_VERSION=0.18.0
 export DISK_MIN=5
 
-export CMAKE=$(command -v cmake 2>/dev/null)
+ARCH=$( uname )
 CMAKE_BUILD_TYPE=Release
 DOXYGEN=false
 ENABLE_COVERAGE_TESTING=false
 CORE_SYMBOL_NAME="SYS"
 export NONINTERACTIVE=false
-ARCH=$( uname )
+export PROCEED=false
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+COUNT=1
+DISPLAY=""
+DEPS=""
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT="${SCRIPT_DIR}/.."
+BUILD_DIR="${REPO_ROOT}/build"
+

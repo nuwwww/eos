@@ -1,3 +1,6 @@
+[[ -z $VERBOSE ]] && export VERBOSE=false || echo "[VERBOSE OUTPUT ENABLED]" # Support tests + Disable execution messages in STDOUT
+[[ -z $DRYRUN ]] && export DRYRUN=false || echo "[DRYRUN ENABLED]" # Support tests + Disable execution, just STDOUT
+
 function usage() {
    printf "Usage: %s \\n
    [Build Option -o <Debug|Release|RelWithDebInfo|MinSizeRel>]
@@ -11,10 +14,6 @@ function usage() {
 }
 
 function setup() {
-    REPO_ROOT="${SCRIPT_DIR}/.."
-    BUILD_DIR="${REPO_ROOT}/build"
-    [[ -z $VERBOSE ]] && export VERBOSE=false # Support tests + Disable execution messages in STDOUT
-    [[ -z $DRYRUN ]] && export DRYRUN=false # Support tests + Disable execution, just STDOUT
     execute mkdir -p $SRC_LOCATION
     execute mkdir -p $OPT_LOCATION
     execute mkdir -p $VAR_LOCATION

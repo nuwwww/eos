@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
+VERSION=3.0 # Build script version (change this to re-build the CICD image)
 ##########################################################################
 # This is the EOSIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/EOSIO/eos
@@ -32,12 +33,9 @@ set -eo pipefail
 ##########################################################################
 
 TIME_BEGIN=$( date -u +%s )
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Obtain dependency versions; Must come first in the script
 . ./scripts/.environment
-
-VERSION=3.0 # Build script version (change this to re-build the CICD image)
 
 # Load bash script helper functions
 . ./scripts/lib/helpers.bash
@@ -118,6 +116,7 @@ printf "User: %s\\n" "$( whoami )"
 printf "Current branch: %s\\n" "$( git rev-parse --abbrev-ref HEAD )"
 
 # Setup based on architecture
+export CMAKE=$(command -v cmake 2>/dev/null)
 printf "\\nARCHITECTURE: %s\\n" "${ARCH}"
 if [ "$ARCH" == "Linux" ]; then
    # Check if cmake is already installed or not and use source install location
@@ -179,13 +178,12 @@ if [ "$ARCH" == "Linux" ]; then
 fi
 
 if [ "$ARCH" == "Darwin" ]; then
-   # Check if cmake is already installed or not and use source install location
-   if [ -z $CMAKE ]; then export CMAKE=/usr/local/bin/cmake; fi
+   [[ -z "${CMAKE}" ]] && export CMAKE=/usr/local/bin/cmake # Check if cmake is already installed or not and use source install location
    export OS_NAME=MacOSX
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
-   FILE="${REPO_ROOT}/scripts/eosio_build_darwin.bash"
+   FILE="${SCRIPT_DIR}/eosio_build_darwin.bash"
    CXX_COMPILER=clang++
    C_COMPILER=clang
    OPENSSL_ROOT_DIR=/usr/local/opt/openssl
@@ -193,9 +191,9 @@ fi
 
 printf "\\n${COLOR_CYAN}====================================================================================="
 printf "\\n======================= ${COLOR_WHITE}Starting EOSIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}\\n"
-pushd $SRC_LOCATION &>/dev/null
-. "$FILE" # Execute OS specific build file
-popd &>/dev/null
+execute pushd $SRC_LOCATION
+. $FILE # Execute OS specific build file
+execute popd
 
 printf "\\n${COLOR_CYAN}========================================================================"
 printf "\\n======================= ${COLOR_WHITE}Starting EOSIO Build${COLOR_CYAN} ===========================\\n"
