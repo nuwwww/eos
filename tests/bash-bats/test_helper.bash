@@ -24,6 +24,20 @@ create_home_dir() {
   execute mkdir -p $HOME
 }
 
+create_home_dirs() {
+  echo "[Create User Home Directories (~/src, opt, etc)]" >&3
+  # Obtain dependency versions
+  . ./scripts/.environment
+  execute mkdir -p $SRC_LOCATION
+  execute mkdir -p $OPT_LOCATION
+  execute mkdir -p $VAR_LOCATION
+  execute mkdir -p $BIN_LOCATION
+  execute mkdir -p $VAR_LOCATION/log
+  execute mkdir -p $ETC_LOCATION
+  execute mkdir -p $MONGODB_LOG_LOCATION
+  execute mkdir -p $MONGODB_DATA_LOCATION
+}
+
 debug() {
   printf " ---------\\n STATUS: ${status}\\n${output}\\n ---------\\n\\n" >&3
 }
@@ -31,6 +45,7 @@ debug() {
 setup() { # setup is run once before each test
   echo -e "\n-- SETUP --" >&3
   create_home_dir
+  create_home_dirs
   create_eosio_dir
   create_eosio_data_dir
   echo -e "-- END SETUP --\n" >&3
@@ -43,8 +58,10 @@ teardown() { # teardown is run once after each test, even if it fails
 }
 
 create_eosio_dir () {
+  echo "[Create eosio directory]"
   execute mkdir -p $HOME/opt/eosio
 }
 create_eosio_data_dir () {
+  echo "[Create eosio data directory]"
   execute mkdir -p $HOME/Library/Application\ Support/eosio
 }

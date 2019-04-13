@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load test_helper
 
-SCRIPT_LOCATION="scripts/eosio_uninstall.sh"
+SCRIPT_LOCATION="scripts/eosio_uninstall.bash"
 TEST_LABEL="[uninstall]"
 
 # A helper function is available to show output and status: `debug`

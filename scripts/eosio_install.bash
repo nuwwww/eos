@@ -35,6 +35,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
 BUILD_DIR="${REPO_ROOT}/build"
 
+# Load bash script helper functions
+. ./scripts/helpers.bash
+
 OPT_LOCATION=$HOME/opt
 BIN_LOCATION=$HOME/bin
 LIB_LOCATION=$HOME/lib
@@ -65,7 +68,7 @@ if ! make install; then
 fi
 popd &> /dev/null 
 
-printf "\n${bldred}      ___           ___           ___                       ___\n"
+printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
 printf "     /  /\\         /  /\\         /  /\\        ___          /  /\\ \n"
 printf "    /  /:/_       /  /::\\       /  /:/_      /  /\\        /  /::\\ \n"
 printf "   /  /:/ /\\     /  /:/\\:\\     /  /:/ /\\    /  /:/       /  /:/\\:\\ \n"
@@ -75,11 +78,11 @@ printf " \\  \\:\\/:/ /:/ \\  \\:\\ /  /:/ \\  \\:\\/:/~/:/    \\  \\:\\/\\ \\  
 printf "  \\  \\::/ /:/   \\  \\:\\  /:/   \\  \\::/ /:/      \\__\\::/  \\  \\:\\  /:/ \n"
 printf "   \\  \\:\\/:/     \\  \\:\\/:/     \\__\\/ /:/       /__/:/    \\  \\:\\/:/ \n"
 printf "    \\  \\::/       \\  \\::/        /__/:/        \\__\\/      \\  \\::/ \n"
-printf "     \\__\\/         \\__\\/         \\__\\/                     \\__\\/ \n\n${txtrst}"
+printf "     \\__\\/         \\__\\/         \\__\\/                     \\__\\/ \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
-printf "EOSIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
-printf "If you need to, you can uninstall using: ./scripts/full_uninstaller.sh (it will leave your data directory).\\n"
+printf "${COLOR_GREEN}EOSIO has been installed into ${OPT_LOCATION}/eosio/bin!${COLOR_NC}\\n"
+printf "\\n${COLOR_YELLOW}Uninstall with ./scripts/eosio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 
 printf "EOSIO website: https://eos.io\\n"
