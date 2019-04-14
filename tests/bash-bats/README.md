@@ -6,12 +6,17 @@ For each bash script we have, there should be a separate .sh file within ROOT/te
 
  - Running all tests: 
     ```
-    $ bats -r tests/bash-bats/*
-     ✓ [helpers] > execute
-     ✓ [uninstall] > Usage is visible with right interaction
-     ✓ [uninstall] > Testing user prompts
-     ✓ [uninstall] > --force
-     ✓ [uninstall] > --force + --full
+    $ bats tests/bash-bats/*.bash
+      ✓ [eosio_build_darwin] > Testing -y/NONINTERACTIVE/PROCEED
+      ✓ [eosio_build_darwin] > Testing prompts
+      ✓ [eosio_build_darwin] > Testing executions
+      ✓ [helpers] > execute > dryrun
+      ✓ [helpers] > execute > verbose
+      ✓ [uninstall] > Usage is visible with right interaction
+      ✓ [uninstall] > Testing user prompts
+      ✓ [uninstall] > Testing executions
+      ✓ [uninstall] > --force
+      ✓ [uninstall] > --force + --full
 
-    5 tests, 0 failures
+      10 tests, 0 failures
     ```

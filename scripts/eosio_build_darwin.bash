@@ -55,16 +55,16 @@ else printf " - Ruby installation found @ ${RUBY}\\n"; fi
 printf "${COLOR_CYAN}[Checking HomeBrew installation]${COLOR_NC}\\n"
 if ! BREW=$( command -v brew ); then
 	while true; do
-		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC} " NONINTERACTIVE
-		case $NONINTERACTIVE in
+		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC} " PROCEED
+		case $PROCEED in
 			"" ) echo "What would you like to do?";;
 			0 | true | [Yy]* )
 				execute "${XCODESELECT}" --install
 				if ! execute "${RUBY}" -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"; then
-					echo "Unable to install homebrew at this time." && exit 1;
+					echo "Unable to install HomeBrew at this time." && exit 1;
 				else BREW=$( command -v brew ); fi
 			break;;
-			1 | false | [Nn]* ) echo "${COLOR_RED}[User aborted required homebrew installation]${COLOR_NC}"; exit 1;;
+			1 | false | [Nn]* ) echo "${COLOR_RED}[User aborted required HomeBrew installation]${COLOR_NC}"; exit 1;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
 		esac
 	done
@@ -109,7 +109,7 @@ if [ $COUNT -gt 1 ]; then
 			0 | true | [Yy]* )
 				execute "${XCODESELECT}" --install 2>/dev/null || true
 				while true; do
-					[[ $NONINTERACTIVE != 1 ]] && read -p "${COLOR_YELLOW}Do you wish to update homebrew packages first? (y/n)${COLOR_NC} " PROCEED
+					[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update HomeBrew packages first? (y/n)${COLOR_NC} " PROCEED
 					case $PROCEED in
 						"" ) echo "What would you like to do?";;
 						0 | true | [Yy]* ) execute brew update; break;;
@@ -126,8 +126,9 @@ if [ $COUNT -gt 1 ]; then
 					execute $BREW install $DEP
 				done
 				IFS="$OIFS"
+				printf "\n"
 			break;;
-			1 | false | [Nn]* ) echo "User aborting installation of required dependencies, Exiting now."; exit;;
+			1 | false | [Nn]* ) echo " - User aborted installation of required dependencies."; exit;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
 		esac
 	done

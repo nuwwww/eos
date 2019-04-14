@@ -15,11 +15,12 @@ function execute() {
 function setup-tmp() {
   # Use current directory's tmp directory if noexec is enabled for /tmp
   if (mount | grep "/tmp " | grep --quiet noexec); then
-        mkdir -p $REPO_ROOT/tmp
-        TEMP_DIR="${REPO_ROOT}/tmp"
-        rm -rf $REPO_ROOT/tmp/*
+    [[ -z "${REPO_ROOT}" ]] && echo "\$REPO_ROOT not set" && exit 1
+    mkdir -p $REPO_ROOT/tmp
+    TEMP_DIR="${REPO_ROOT}/tmp"
+    rm -rf $REPO_ROOT/tmp/*
   else # noexec wasn't found
-        TEMP_DIR="/tmp"
+    TEMP_DIR="/tmp"
   fi
 }
 

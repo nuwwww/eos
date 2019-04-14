@@ -4,7 +4,7 @@ load test_helper
 # A helper function is available to show output and status: `debug`
 
 # Load helpers (BE CAREFUL)
-. ./scripts/helpers.bash
+. ./scripts/lib/helpers.bash
 
 TEST_LABEL="[helpers]"
 
