@@ -23,3 +23,10 @@ function setup() {
     execute mkdir -p $MONGODB_LOG_LOCATION
     execute mkdir -p $MONGODB_DATA_LOCATION
 }
+
+function resources() {
+    printf "${COLOR_CYAN}EOSIO website:${COLOR_NC} https://eos.io\\n"
+    printf "${COLOR_CYAN}EOSIO Telegram channel:${COLOR_NC} https://t.me/EOSProject\\n"
+    printf "${COLOR_CYAN}EOSIO resources:${COLOR_NC} https://eos.io/resources/\\n"
+    printf "${COLOR_CYAN}EOSIO Stack Exchange:${COLOR_NC} https://eosio.stackexchange.com\\n"
+}

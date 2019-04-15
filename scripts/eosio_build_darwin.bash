@@ -112,13 +112,13 @@ if [ $COUNT -gt 1 ]; then
 					[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update HomeBrew packages first? (y/n)${COLOR_NC} " PROCEED
 					case $PROCEED in
 						"" ) echo "What would you like to do?";;
-						0 | true | [Yy]* ) execute brew update; break;;
+						0 | true | [Yy]* ) echo "Updating..." && execute brew update; break;;
 						1 | false | [Nn]* ) echo "Proceeding without update!"; break;;
 						* ) echo "Please type 'y' for yes or 'n' for no.";;
 					esac
 				done
 				execute brew tap eosio/eosio
-				printf "${COLOR_GREEN}[Installing Dependencies]${COLOR_NC}\\n"
+				printf "${COLOR_GREEN}[Installing HomeBrew Dependencies]${COLOR_NC}\\n"
 				OIFS="$IFS"
 				IFS=$','
 				for DEP in $DEPS; do

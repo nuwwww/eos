@@ -36,7 +36,10 @@ REPO_ROOT="${SCRIPT_DIR}/.."
 BUILD_DIR="${REPO_ROOT}/build"
 
 # Load bash script helper functions
-. ./scripts/helpers.bash
+. ./scripts/lib/helpers.bash
+
+# Load eosio specific helper functions
+. ./scripts/lib/eosio.bash
 
 OPT_LOCATION=$HOME/opt
 BIN_LOCATION=$HOME/bin
@@ -52,20 +55,10 @@ txtbld=$(tput bold)
 bldred=${txtbld}$(tput setaf 1)
 txtrst=$(tput sgr0)
 
-if [ ! -d $BUILD_DIR ]; then
-   printf "\\nError, eosio_build.sh has not ran.  Please run ./eosio_build.sh first!\\n\\n"
-   exit -1
-fi
+[[ ! -d $BUILD_DIR ]] && printf "${COLOR_RED}Please run ./eosio_build.sh first!${COLOR_NC}" && exit 1
 
-if ! pushd "${BUILD_DIR}" &> /dev/null;then
-   printf "Unable to enter build directory %s.\\n Exiting now.\\n" "${BUILD_DIR}"
-   exit 1;
-fi
-
-if ! make install; then
-   printf "\\nMAKE installing EOSIO has exited with the above error.\\n\\n"
-   exit -1
-fi
+pushd "${BUILD_DIR}" 1>/dev/null
+execute make install
 popd &> /dev/null 
 
 printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
@@ -81,10 +74,7 @@ printf "    \\  \\::/       \\  \\::/        /__/:/        \\__\\/      \\  \\::
 printf "     \\__\\/         \\__\\/         \\__\\/                     \\__\\/ \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
-printf "${COLOR_GREEN}EOSIO has been installed into ${OPT_LOCATION}/eosio/bin!${COLOR_NC}\\n"
-printf "\\n${COLOR_YELLOW}Uninstall with ./scripts/eosio_uninstall.sh${COLOR_NC}\\n"
+printf "${COLOR_GREEN}EOSIO has been installed into ${OPT_LOCATION}/eosio/bin!${COLOR_NC}"
+printf "\\n${COLOR_YELLOW}Uninstall with: ./scripts/eosio_uninstall.bash${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
-
-printf "EOSIO website: https://eos.io\\n"
-printf "EOSIO resources: https://eos.io/resources/\\n"
-printf "EOSIO Stack Exchange: https://eosio.stackexchange.com\\n"
+resources
