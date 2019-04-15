@@ -76,12 +76,12 @@ printf "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}\\n"
 var_ifs="${IFS}"
 IFS=","
 while read -r name tester testee uri; do
-	if [ $tester $testee ]; then
+	if [ $tester $testee ] && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
 		printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
 		continue
 	fi
 	# resolve conflict with homebrew glibtool and apple/gnu installs of libtool
-	if [ "${testee}" == "/usr/local/bin/glibtool" ]; then
+	if [[ "${testee}" == "/usr/local/bin/glibtool" ]]; then
 		if [ "${tester}" "/usr/local/bin/libtool" ]; then
 			printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
 			continue
@@ -112,7 +112,7 @@ if [ $COUNT -gt 1 ]; then
 					[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update HomeBrew packages first? (y/n)${COLOR_NC} " PROCEED
 					case $PROCEED in
 						"" ) echo "What would you like to do?";;
-						0 | true | [Yy]* ) echo "Updating..." && execute brew update; break;;
+						0 | true | [Yy]* ) echo "[Updating HomeBrew]" && execute brew update; break;;
 						1 | false | [Nn]* ) echo "Proceeding without update!"; break;;
 						* ) echo "Please type 'y' for yes or 'n' for no.";;
 					esac

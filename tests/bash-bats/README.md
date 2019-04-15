@@ -2,6 +2,8 @@
 
 For each bash script we have, there should be a separate .sh file within ROOT/tests/bash-bats/.
 
+- DRYRUN=true is required for all tests. This can be used to ensure something happens regardless of the state on the executer's machine (see eosio_build_darwin.bash where we check if packages exist or not)
+
 **You must have bats installed: ([Source Install Instructions](https://github.com/bats-core/bats-core#installing-bats-from-source))** || `brew install bats-core`
 
  - Running all tests: 
