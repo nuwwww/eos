@@ -31,9 +31,8 @@ set -eo pipefail
 # https://github.com/EOSIO/eos/blob/master/LICENSE.txt
 ##########################################################################
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT="${SCRIPT_DIR}/.."
-BUILD_DIR="${REPO_ROOT}/build"
+# Obtain dependency versions; Must come first in the script
+. ./scripts/.environment
 
 # Load bash script helper functions
 . ./scripts/lib/helpers.bash
@@ -41,15 +40,10 @@ BUILD_DIR="${REPO_ROOT}/build"
 # Load eosio specific helper functions
 . ./scripts/lib/eosio.bash
 
-OPT_LOCATION=$HOME/opt
-BIN_LOCATION=$HOME/bin
-LIB_LOCATION=$HOME/lib
-mkdir -p $LIB_LOCATION
-
 CMAKE_BUILD_TYPE=Release
 TIME_BEGIN=$( date -u +%s )
 INSTALL_PREFIX=$OPT_LOCATION/eosio
-VERSION=1.2
+VERSION=2.0
 
 txtbld=$(tput bold)
 bldred=${txtbld}$(tput setaf 1)

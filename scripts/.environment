@@ -3,6 +3,7 @@ export OPT_LOCATION=${HOME}/opt
 export VAR_LOCATION=${HOME}/var
 export ETC_LOCATION=${HOME}/etc
 export BIN_LOCATION=${HOME}/bin
+export LIB_LOCATION=$HOME/lib
 export DATA_LOCATION=${HOME}/data
 export CMAKE_VERSION_MAJOR=3
 export CMAKE_VERSION_MINOR=13
