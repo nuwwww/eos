@@ -218,7 +218,9 @@ printf "| (____/\| (___) |/\____) |___) (___| (___) |\n"
 printf "(_______/(_______)\_______)\_______/(_______)\n=============================================\n${COLOR_NC}"
 
 printf "${COLOR_GREEN}EOSIO has been successfully built. %02d:%02d:%02d" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
-printf "\\n${COLOR_YELLOW}Uninstall with ./scripts/eosio_uninstall.sh${COLOR_NC}\\n"
+printf "\\n${COLOR_GREEN}You can now install using: ./scripts/eosio_install.bash${COLOR_NC}"
+printf "\\n${COLOR_YELLOW}Uninstall with: ./scripts/eosio_uninstall.bash${COLOR_NC}\\n"
+
 printf "\n"
 printf "${COLOR_CYAN}If you wish to perform tests to ensure functional code:${COLOR_NC}\\n"
 print_instructions

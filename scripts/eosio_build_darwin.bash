@@ -218,8 +218,6 @@ else
 	printf " - LLVM found @ ${LLVM_ROOT}.\\n"
 fi
 
-execute cd ..
-
 function print_instructions() {
 	return 0
 }
