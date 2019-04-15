@@ -31,9 +31,6 @@ set -eo pipefail
 # https://github.com/EOSIO/eos/blob/master/LICENSE.txt
 ##########################################################################
 
-# Obtain dependency versions; Must come first in the script
-. ./scripts/.environment
-
 # Load bash script helper functions
 . ./scripts/lib/helpers.bash
 
