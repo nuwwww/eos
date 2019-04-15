@@ -191,9 +191,9 @@ fi
 
 printf "\\n${COLOR_CYAN}====================================================================================="
 printf "\\n======================= ${COLOR_WHITE}Starting EOSIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}\\n"
-execute pushd $SRC_LOCATION
+execute pushd $SRC_LOCATION 1>/dev/null
 . $FILE # Execute OS specific build file
-execute popd
+execute popd 1>/dev/null
 
 printf "\\n${COLOR_CYAN}========================================================================"
 printf "\\n======================= ${COLOR_WHITE}Starting EOSIO Build${COLOR_CYAN} ===========================\\n"
