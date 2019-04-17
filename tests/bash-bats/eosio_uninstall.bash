@@ -36,7 +36,6 @@ TEST_LABEL="[eosio_uninstall]"
   run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
   ### Make sure deps are loaded properly
   [[ "${output}" =~ "Executing: rm -rf" ]] || exit
-  echo $ARCH >&3
   [[ $ARCH == "Darwin" ]] && ( [[ "${output}" =~ "Executing: brew uninstall cmake --force" ]] || exit )
   # Legacy support
   [[ ! -z $( echo $output | grep "Executing: rmdir ${HOME}/src") ]] || exit
