@@ -26,10 +26,10 @@ TEST_LABEL="[uninstall]"
   [[ "${output##*$'\n'}" == "[EOSIO Removal Complete]" ]] || exit
   ## First no shows "Cancelled..."
   run bash -c "echo \"n\" | ./$SCRIPT_LOCATION"
-  [[ "${lines[0]}" =~ "Cancelled EOSIO Removal!" ]] || exit
+  [[ "${output##*$'\n'}" =~ "Cancelled EOSIO Removal!" ]] || exit
   ## What would you like to do?"
   run bash -c "echo \"\" | ./$SCRIPT_LOCATION"
-  [[ "${lines[0]}" =~ "What would you like to do?" ]] || exit
+  [[ "${output##*$'\n'}" =~ "What would you like to do?" ]] || exit
 }
 
 @test "${TEST_LABEL} > Testing executions" {

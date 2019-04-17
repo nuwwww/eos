@@ -122,7 +122,7 @@ if [ "$ARCH" == "Linux" ]; then
    # Check if cmake is already installed or not and use source install location
    if [[ -z "${CMAKE}" ]]; then export CMAKE=$HOME/bin/cmake; fi
    OPENSSL_ROOT_DIR=/usr/include/openssl
-   case "$OS_NAME" in
+   case $NAME in
       "Amazon Linux AMI")
          FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux1.bash"
          CXX_COMPILER=g++
@@ -164,9 +164,7 @@ if [ "$ARCH" == "Linux" ]; then
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
-      *)
-         printf "\\nUnsupported Linux Distribution. Exiting now.\\n\\n"
-         exit 1
+      *) printf " - Unsupported Linux Distribution." && exit 1;;
    esac
 fi
 

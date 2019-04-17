@@ -6,7 +6,14 @@ export VERBOSE=true
 export HOME="$BATS_TMPDIR/bats-eosio-user-home" # Ensure $HOME is available for all scripts
 mkdir -p $HOME
 
+# Obtain dependency versions; Must come first in the script
 . ./scripts/.environment
+
+# Load bash script helper functions
+. ./scripts/lib/helpers.bash
+
+# Load eosio specific helper functions
+. ./scripts/lib/eosio.bash
 
 # Ensure we're in the root directory to execute
 if [[ ! -d "tests" ]] && [[ ! -f "README.md" ]]; then

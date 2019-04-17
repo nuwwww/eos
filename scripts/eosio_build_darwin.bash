@@ -78,8 +78,8 @@ fi
 printf "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}\\n"
 OLDIFS="$IFS"
 IFS=$','
-while read -r name tester testee path; do
-	if [ $tester $testee $path ] && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+while read -r name path; do
+	if execute stat $path && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
 		printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
 		continue
 	fi

@@ -1,5 +1,5 @@
-[[ -z "${VERBOSE}" ]] && export VERBOSE=false || echo "[VERBOSE OUTPUT ENABLED]" # Support tests + Disable execution messages in STDOUT
-[[ -z "${DRYRUN}" ]] && export DRYRUN=false || echo "[DRYRUN ENABLED]" # Support tests + Disable execution, just STDOUT
+[[ -z "${VERBOSE}" ]] && export VERBOSE=false # Support tests + Disable execution messages in STDOUT
+[[ -z "${DRYRUN}" ]] && export DRYRUN=false # Support tests + Disable execution, just STDOUT
 # Arrays should return with newlines so we can do something like "${output##*$'\n'}" to get the last line
 IFS=$'\n'
 
@@ -37,7 +37,7 @@ function ensure-git-clone() {
 }
 
 function ensure-submodules-up-to-date() {
-  if [[ $VERBOSE == false ]] && [[ $(execute 'git submodule status --recursive | grep -c "^[+\-]"') -gt 0 ]]; then
+  if [[ $DRYRUN == false ]] && [[ $(execute 'git submodule status --recursive | grep -c "^[+\-]"') -gt 0 ]]; then
     printf "git submodules are not up to date.\\n"
     printf "Please run the command 'git submodule update --init --recursive'.\\n"
     exit 1

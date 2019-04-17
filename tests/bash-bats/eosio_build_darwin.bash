@@ -17,8 +17,8 @@ TEST_LABEL="[eosio_build_darwin]"
   run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
   [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
   ## First no shows "aborting"  
-  run bash -c "echo \"n\" | ./$SCRIPT_LOCATION"
-  [[ "${output##*$'\n'}" =~ " - User aborted installation of required dependencies." ]] || exit
+  run bash -c "printf \"n\n%.0s\" {1..2} | ./$SCRIPT_LOCATION"
+  [[ "${output##*$'\n'}" =~ "- User aborted installation of required dependencies." ]] || exit
 }
 
 @test "${TEST_LABEL} > Testing executions" {
@@ -26,6 +26,8 @@ TEST_LABEL="[eosio_build_darwin]"
   ### Make sure deps are loaded properly
   [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
   [[ ! -z $(echo "${output}" | grep "Executing: /usr/bin/xcode-select --install") ]] || exit
+  [[ ! -z $(echo "${output}" | grep "Executing: stat /usr/local/bin/automake") ]] || exit
+  [[ ! -z $(echo "${output}" | grep automake.*found) ]] || exit
   [[ ! -z $(echo "${output}" | grep "[Updating HomeBrew]") ]] || exit
   [[ ! -z $(echo "${output}" | grep "brew tap eosio/eosio") ]] || exit
   [[ ! -z $(echo "${output}" | grep "brew install cmake") ]] || exit

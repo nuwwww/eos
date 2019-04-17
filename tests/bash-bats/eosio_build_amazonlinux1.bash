@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 load test_helper
 
+[[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
+[[ $NAME == "Amazon Linux AMI"]] || exit 1
+
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_amazonlinux1]"
 
@@ -25,6 +28,7 @@ TEST_LABEL="[eosio_build_amazonlinux1]"
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     ### Make sure deps are loaded properly
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
+    debug
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/yum -y update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: rpm -qa make") ]] || exit
     [[ ! -z $(echo "${output}" | grep "${HOME}/src/boost") ]] || exit

@@ -1,35 +1,18 @@
-# Obtain OS NAME, and VERSION
-. /etc/os-release
-
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
 DISK_AVAIL_KB=$( df . | tail -1 | awk '{print $4}' )
 DISK_TOTAL=$(( DISK_TOTAL_KB / 1048576 ))
 DISK_AVAIL=$(( DISK_AVAIL_KB / 1048576 ))
 
-if [[ "${NAME}" == "Amazon Linux AMI" ]]; then # Amazonlinux1
-	DEP_ARRAY=( 
-		sudo procps util-linux which gcc72 gcc72-c++ autoconf automake libtool make doxygen graphviz \
-		bzip2 bzip2-devel openssl-devel gmp gmp-devel libstdc++72 python27 python27-devel python36 python36-devel \
-		libedit-devel ncurses-devel swig wget file libcurl-devel libusb1-devel
-	)
-else # Amazonlinux2
-	DEP_ARRAY=( 
-		git procps-ng util-linux gcc gcc-c++ autoconf automake libtool make bzip2 \
-		bzip2-devel openssl-devel gmp-devel libstdc++ libcurl-devel libusbx-devel \
-		python3 python3-devel python-devel libedit-devel doxygen graphviz 
-	)
-fi
-
-( [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && printf "You must be running Amazon Linux 2017.09 or higher to install EOSIO.\\n" && exit 1
-[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && printf "You must have at least %sGB of available storage to install EOSIO.\\n" "${DISK_MIN}" && exit 1
+( [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
+[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo " - You must have at least ${DISK_MIN}GB of available storage to install EOSIO." && exit 1
 
 printf "${COLOR_CYAN}[Checking YUM installation]${COLOR_NC}\\n"
 if ! YUM=$( command -v yum 2>/dev/null ); then printf " - YUM must be installed to compile EOS.IO.\\n" && exit 1
 else printf "Yum installation found at ${YUM}.\\n"; fi
 
-[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update YUM repositories? (y/n)?${COLOR_NC} " PROCEED
 while true; do
+	[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update YUM repositories? (y/n)?${COLOR_NC} " PROCEED
 	case $PROCEED in
 		"" ) echo "What would you like to do?";;
 		0 | true | [Yy]* )
@@ -45,76 +28,49 @@ while true; do
 	esac
 done
 printf "${COLOR_CYAN}[Checking RPM for installed dependencies]${COLOR_NC}\\n"
-while read -r name tester testee uri; do
-	if [ $tester $testee ] && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
-		printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
-		continue
-	fi
-	# resolve conflict with homebrew glibtool and apple/gnu installs of libtool
-	if [[ "${testee}" == "/usr/local/bin/glibtool" ]]; then
-		if [ "${tester}" "/usr/local/bin/libtool" ]; then
-			printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
-			continue
-		fi
-	fi
-	DEPS=$DEPS"${name},"
-	printf " - ${name} ${COLOR_RED}NOT${COLOR_NC} found.\\n"
-	(( COUNT++ ))
-done < "${REPO_ROOT}/scripts/eosio_build_amazonlinux1_deps"
-
-exit
-for DEP in ${DEP_ARRAY[@]}; do
-
-	pkg=$( execute "rpm -qi ${DEP_ARRAY[$i]} 2>/dev/null | grep Name" )
-	$VERBOSE && echo "  $pkg"
-	if $DRYRUN && [[ -z $pkg ]]; then
-		DEP=$DEP" ${DEP_ARRAY[$i]} "
-		DISPLAY="${DISPLAY}${COUNT}. ${DEP_ARRAY[$i]}\\n"
-		printf " - Package %s ${COLOR_RED} NOT ${COLOR_NC} found!\\n" "${DEP_ARRAY[$i]}"
-		(( COUNT++ ))
+OLDIFS="$IFS"
+IFS=$','
+while read -r testee tester; do
+	if execute $tester $testee && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+		printf " - ${testee} ${COLOR_GREEN}found!${COLOR_NC}\\n"
 	else
-		printf " - Package %s ${COLOR_GREEN}found!${COLOR_NC}\\n" "${DEP_ARRAY[$i]}"
-		continue
+		DEPS=$DEPS"${testee},"
+		printf " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found.\\n"
+		(( COUNT++ ))
 	fi
-done
+done < "${REPO_ROOT}/scripts/eosio_build_amazonlinux2_deps"
+printf "\n"
 if [ "${COUNT}" -gt 1 ]; then
-	[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC} " PROCEED
 	while true; do
+		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC} " PROCEED
 		case $PROCEED in
 			"" ) echo "What would you like to do?";;
 			0 | true | [Yy]* )
-				if ! execute sudo $YUM -y install ${DEP}; then
-					printf " ${COLOR_RED}- YUM dependency installation failed!${COLOR_NC}\\n"
-					exit 1;
-				else
-					printf " ${COLOR_GREEN}- YUM dependencies installed successfully.${COLOR_NC}\\n"
-				fi
-			;;
-			1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborting installation of required dependencies.${COLOR_NC}"; exit;;
+				for DEP in $DEPS; do
+					# Eval to support string/arguments with $DEP
+					execute sudo $YUM -y install ${DEP}
+				done
+			break;;
+			1 | false | [Nn]* ) echo "TEST" && echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
 		esac
 	done
 else
 	printf " - No required YUM dependencies to install.\\n"
 fi
+IFS=$OLDIFS
 
-# util-linux includes lscpu
-# procps includes free -m
-MEM_MEG=$( free -m | sed -n 2p | tr -s ' ' | cut -d\  -f2 )
-CPU_SPEED=$( lscpu | grep "MHz" | tr -s ' ' | cut -d\  -f3 | cut -d'.' -f1 )
-CPU_CORE=$( nproc )
-MEM_GIG=$(( ((MEM_MEG / 1000) / 2) ))
-export JOBS=$(( MEM_GIG > CPU_CORE ? CPU_CORE : MEM_GIG ))
+MEM_GIG=$(( ( ( $(cat /proc/meminfo | grep MemTotal | awk '{print $2}') / 1000 ) / 1000 ) ))
+export JOBS=$(( MEM_GIG > CPU_CORES ? CPU_CORES : MEM_GIG ))
 
-printf "\\nOS name: %s\\n" "${OS_NAME}"
-printf "OS Version: %s\\n" "${OS_VER}"
-printf "CPU speed: %sMhz\\n" "${CPU_SPEED}"
-printf "CPU cores: %s\\n" "${CPU_CORE}"
-printf "Physical Memory: %sMgb\\n" "${MEM_MEG}"
+printf "\\nOS name: %s\\n" "${NAME}"
+printf "OS Version: %s\\n" "${VERSION_ID}"
+printf "CPU cores: %s\\n" "${CPU_CORES}"
+printf "Physical Memory: %sGb\\n" "${MEM_GIG}"
 printf "Disk space total: %sGb\\n" "${DISK_TOTAL}"
 printf "Disk space available: %sG\\n" "${DISK_AVAIL}"
 
-[ "${MEM_MEG}" -lt 7000 ] && printf "Your system must have 7 or more Gigabytes of physical memory installed.\\n" && exit 1
+[[ $MEM_GIG -lt 7 ]] && printf "Your system must have 7 or more Gigabytes of physical memory installed.\\n" && exit 1
 
 printf "\\n"
 
@@ -144,7 +100,7 @@ if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOS
 	&& tar -xjf boost_$BOOST_VERSION.tar.bz2 \
 	&& cd $BOOST_ROOT \
 	&& ./bootstrap.sh --prefix=$BOOST_ROOT \
-	&& ./b2 -q -j$(sysctl -in machdep.cpu.core_count) --with-iostreams --with-date_time --with-filesystem \
+	&& ./b2 -q -j${JOBS} --with-iostreams --with-date_time --with-filesystem \
 	                                                  --with-system --with-program_options --with-chrono --with-test install \
 	&& cd .. \
 	&& rm -f boost_$BOOST_VERSION.tar.bz2 \
@@ -184,7 +140,7 @@ if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
 	&& mkdir -p cmake-build \
 	&& cd cmake-build \
 	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DENABLE_BSON=ON -DENABLE_SSL=OPENSSL -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
-	&& make -j"${JOBS}" \
+	&& make -j${JOBS} \
 	&& make install \
 	&& cd ../.. \
 	&& rm mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz"
@@ -199,7 +155,7 @@ if [[ ! -d $MONGO_CXX_DRIVER_ROOT ]]; then
 	&& tar -xzf mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& cd mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION/build \
 	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
-	&& make -j"${JOBS}" VERBOSE=1 \
+	&& make -j${JOBS} VERBOSE=1 \
 	&& make install \
 	&& cd ../.. \
 	&& rm -f mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz"
@@ -218,15 +174,13 @@ if [[ ! -d $LLVM_ROOT ]]; then
 	&& mkdir build \
 	&& cd build \
 	&& $CMAKE -G \"Unix Makefiles\" -DCMAKE_INSTALL_PREFIX=\"${LLVM_ROOT}\" -DLLVM_TARGETS_TO_BUILD=\"host\" -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=\"Release\" .. \
-	&& make -j$JOBS \
+	&& make -j${JOBS} \
 	&& make install \
 	&& cd ../.."
 	printf " - LLVM successfully installed @ ${LLVM_ROOT}\\n"
 else
 	printf " - LLVM found @ ${LLVM_ROOT}.\\n"
 fi
-
-printf "\\n"
 
 function print_instructions() {
 	return 0

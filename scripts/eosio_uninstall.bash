@@ -102,9 +102,7 @@ while true; do
          IFS=$OLDIFS
          echo "[EOSIO Removal Complete]"
          break;;
-      1 | false | [Nn]* )
-         echo " - Cancelled EOSIO Removal!"
-         break;;
+      1 | false | [Nn]* ) echo " - Cancelled EOSIO Removal!"; exit 1;;
       * ) echo "Please type 'y' for yes or 'n' for no.";;
    esac
 done
