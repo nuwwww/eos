@@ -12,7 +12,7 @@ TEST_LABEL="[eosio_build_darwin]"
 @test "${TEST_LABEL} > Testing -y/NONINTERACTIVE/PROCEED" {
     # FOR LOOP EACH PROMPT AND TEST THE SAME SET OF TESTS
     run bash -c "./$SCRIPT_LOCATION -y"
-    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] && exit
+    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
 }
 
 @test "${TEST_LABEL} > Testing prompts" {
