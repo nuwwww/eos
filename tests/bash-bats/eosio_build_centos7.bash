@@ -24,6 +24,15 @@ TEST_LABEL="[eosio_build_centos7]"
     [[ "${output##*$'\n'}" =~ "- User aborted installation of required Centos Software Collections Repository" ]] || exit
 }
 
+@test "${TEST_LABEL} > Testing CMAKE Install" {
+    export CMAKE="/etc/fstab" # file just needs to exist
+    run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
+    [[ ! -z $(echo "${output}" | grep "CMAKE found @ /etc/fstab") ]] || exit
+    export CMAKE=
+    run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
+    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
+}
+
 @test "${TEST_LABEL} > Testing executions" {
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     ### Make sure deps are loaded properly

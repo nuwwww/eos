@@ -120,10 +120,6 @@ fi
 
 echo ""
 
-# UBUNTU 18 doesn't have MONGODB 3.6.3
-MONGODB_VERSION=4.1.1
-# We have to re-set this with the new version
-MONGODB_ROOT=${OPT_LOCATION}/mongodb-${MONGODB_VERSION}
 VERSION_MAJ=$(echo "${VERSION_ID}" | cut -d'.' -f1)
 VERSION_MIN=$(echo "${VERSION_ID}" | cut -d'.' -f2)
 echo "${COLOR_CYAN}[Checking MongoDB installation]${COLOR_NC}"

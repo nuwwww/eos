@@ -25,6 +25,7 @@ TEST_LABEL="[eosio_build_darwin]"
 }
 
 @test "${TEST_LABEL} > Testing executions" {
+  export CMAKE=/usr/local/bin/cmake # Necessary just in case it's not brew installed
   run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
   ### Make sure deps are loaded properly
   [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit

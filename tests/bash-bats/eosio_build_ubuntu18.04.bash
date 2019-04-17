@@ -6,7 +6,7 @@ TEST_LABEL="[eosio_build_ubuntu18.04]"
 
 [[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
 [[ $NAME == "Ubuntu" ]] || exit 1
-[[ $VERSION_ID == "16.04" ]] || exit 1
+[[ $VERSION_ID == "18.04" ]] || exit 1
 
 # A helper function is available to show output and status: `debug`
 
@@ -25,13 +25,20 @@ TEST_LABEL="[eosio_build_ubuntu18.04]"
     [[ "${output##*$'\n'}" =~ "- User aborted installation of required dependencies." ]] || exit
 }
 
+@test "${TEST_LABEL} > Testing CMAKE Install" {
+    export CMAKE="/etc/fstab" # file just needs to exist
+    run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
+    [[ ! -z $(echo "${output}" | grep "CMAKE found @ /etc/fstab") ]] || exit
+    export CMAKE=
+    run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
+    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
+}
+
 @test "${TEST_LABEL} > Testing executions" {
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
-    ### Make sure deps are loaded properly
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/apt-get update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: dpkg-query -l make") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
     [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu1804-") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
