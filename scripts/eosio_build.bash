@@ -113,30 +113,23 @@ printf "\\nBeginning build version: %s\\n" "${VERSION}"
 printf "%s\\n" "$( date -u )"
 printf "User: %s\\n" "$( whoami )"
 # printf "git head id: %s\\n" "$( cat .git/refs/heads/master )"
-printf "Current branch: %s\\n" "$( git rev-parse --abbrev-ref HEAD )"
+printf "Current branch: %s\\n" "$( execute git rev-parse --abbrev-ref HEAD )"
 
 # Setup based on architecture
 export CMAKE=$(command -v cmake 2>/dev/null)
-printf "\\nARCHITECTURE: %s\\n" "${ARCH}"
+echo "Architecture: ${ARCH}"
 if [ "$ARCH" == "Linux" ]; then
    # Check if cmake is already installed or not and use source install location
-   if [ -z $CMAKE ]; then export CMAKE=$HOME/bin/cmake; fi
-   export OS_NAME=$( cat /etc/os-release | grep ^NAME | cut -d'=' -f2 | sed 's/\"//gI' )
+   if [[ -z "${CMAKE}" ]]; then export CMAKE=$HOME/bin/cmake; fi
    OPENSSL_ROOT_DIR=/usr/include/openssl
-   if [ ! -e /etc/os-release ]; then
-      printf "\\nEOSIO currently supports Amazon, Centos, Fedora, Mint & Ubuntu Linux only.\\n"
-      printf "Please install on the latest version of one of these Linux distributions.\\n"
-      printf "https://aws.amazon.com/amazon-linux-ami/\\n"
-      printf "https://www.centos.org/\\n"
-      printf "https://start.fedoraproject.org/\\n"
-      printf "https://linuxmint.com/\\n"
-      printf "https://www.ubuntu.com/\\n"
-      printf "Exiting now.\\n"
-      exit 1
-   fi
    case "$OS_NAME" in
-      "Amazon Linux AMI"|"Amazon Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_amazon.bash"
+      "Amazon Linux AMI")
+         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux1.bash"
+         CXX_COMPILER=g++
+         C_COMPILER=gcc
+      ;;
+      "Amazon Linux")
+         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux2.bash"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
@@ -179,7 +172,6 @@ fi
 
 if [ "$ARCH" == "Darwin" ]; then
    [[ -z "${CMAKE}" ]] && export CMAKE=/usr/local/bin/cmake # Check if cmake is already installed or not and use source install location
-   export OS_NAME=MacOSX
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 

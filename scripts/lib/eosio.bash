@@ -1,5 +1,13 @@
-[[ -z $VERBOSE ]] && export VERBOSE=false || echo "[VERBOSE OUTPUT ENABLED]" # Support tests + Disable execution messages in STDOUT
-[[ -z $DRYRUN ]] && export DRYRUN=false || echo "[DRYRUN ENABLED]" # Support tests + Disable execution, just STDOUT
+# Checks for Arch and OS + Support for tests setting them manually
+[[ -z "${ARCH}" ]] && export ARCH=$( uname )
+if [[ -z "${OS_NAME}" ]]; then
+    if [[ $ARCH == "Linux" ]]; then
+        [[ ! -e /etc/os-release ]] && printf "\\n ${COLOR_RED}- /etc/os-release not found! It seems you're attempting to use an unsupported Linux distribution.${COLOR_NC}\\n" && exit 1
+        export OS_NAME=$( cat /etc/os-release | grep ^NAME | cut -d'=' -f2 | sed 's/\"//gI' )
+    elif [[ $ARCH == "Darwin" ]]; then export OS_NAME=MacOSX
+    else echo " ${COLOR_RED}- EOSIO is not supported for your Architecture!${COLOR_NC}" && exit 1
+    fi
+fi
 
 function usage() {
    printf "Usage: %s \\n

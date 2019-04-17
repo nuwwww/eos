@@ -3,9 +3,7 @@ OS_MAJ=$(echo "${OS_VER}" | cut -d'.' -f1)
 OS_MIN=$(echo "${OS_VER}" | cut -d'.' -f2)
 OS_PATCH=$(echo "${OS_VER}" | cut -d'.' -f3)
 MEM_GIG=$(bc <<< "($(sysctl -in hw.memsize) / 1024000000)")
-CPU_SPEED=$(bc <<< "scale=2; ($(sysctl -in hw.cpufrequency) / 10^8) / 10")
-CPU_CORE=$( sysctl -in machdep.cpu.core_count )
-export JOBS=$(( MEM_GIG > CPU_CORE ? CPU_CORE : MEM_GIG ))
+export JOBS=$(( MEM_GIG > CPU_CORES ? CPU_CORES : MEM_GIG ))
 
 DISK_INSTALL=$(df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 || cut -d' ' -f1)
 blksize=$(df . | head -1 | awk '{print $2}' | cut -d- -f1)
@@ -17,8 +15,7 @@ DISK_AVAIL=$((avail_blks / gbfactor ))
 
 printf "\\nOS name: ${OS_NAME}\\n"
 printf "OS Version: ${OS_VER}\\n"
-printf "CPU speed: ${CPU_SPEED}Mhz\\n"
-printf "CPU cores: %s\\n" "${CPU_CORE}"
+printf "CPU cores: %s\\n" "${CPU_CORES}"
 printf "Physical Memory: ${MEM_GIG} Gbytes\\n"
 printf "Disk install: ${DISK_INSTALL}\\n"
 printf "Disk space total: ${DISK_TOTAL}G\\n"
@@ -64,7 +61,7 @@ if ! BREW=$( command -v brew ); then
 					echo "Unable to install HomeBrew at this time." && exit 1;
 				else BREW=$( command -v brew ); fi
 			break;;
-			1 | false | [Nn]* ) echo "${COLOR_RED}[User aborted required HomeBrew installation]${COLOR_NC}"; exit 1;;
+			1 | false | [Nn]* ) echo "${COLOR_RED} - User aborted required HomeBrew installation${COLOR_NC}"; exit 1;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
 		esac
 	done
@@ -72,11 +69,17 @@ else
 	printf " - HomeBrew installation found @ ${BREW}\\n"
 fi
 
+if [ ! -d /usr/local/Frameworks ]; then
+	printf "\\n${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}\\n"
+	printf "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks\\n\\n"
+	exit 1;
+fi
+
 printf "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}\\n"
-var_ifs="${IFS}"
-IFS=","
-while read -r name tester testee uri; do
-	if [ $tester $testee ] && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+OLDIFS="$IFS"
+IFS=$','
+while read -r name tester testee path; do
+	if [ $tester $testee $path ] && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
 		printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
 		continue
 	fi
@@ -91,16 +94,7 @@ while read -r name tester testee uri; do
 	printf " - ${name} ${COLOR_RED}NOT${COLOR_NC} found.\\n"
 	(( COUNT++ ))
 done < "${REPO_ROOT}/scripts/eosio_build_darwin_deps"
-IFS="${var_ifs}"
-
-if [ ! -d /usr/local/Frameworks ]; then
-	printf "\\n${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}\\n"
-	printf "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks\\n\\n"
-	exit 1;
-fi
-
 printf "\n"
-
 if [ $COUNT -gt 1 ]; then
 	while true; do
 		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)${COLOR_NC} " PROCEED
@@ -113,14 +107,12 @@ if [ $COUNT -gt 1 ]; then
 					case $PROCEED in
 						"" ) echo "What would you like to do?";;
 						0 | true | [Yy]* ) echo "[Updating HomeBrew]" && execute brew update; break;;
-						1 | false | [Nn]* ) echo "Proceeding without update!"; break;;
+						1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
 						* ) echo "Please type 'y' for yes or 'n' for no.";;
 					esac
 				done
 				execute brew tap eosio/eosio
 				printf "${COLOR_GREEN}[Installing HomeBrew Dependencies]${COLOR_NC}\\n"
-				OIFS="$IFS"
-				IFS=$','
 				for DEP in $DEPS; do
 					# Eval to support string/arguments with $DEP
 					execute $BREW install $DEP
@@ -128,7 +120,7 @@ if [ $COUNT -gt 1 ]; then
 				IFS="$OIFS"
 				printf "\n"
 			break;;
-			1 | false | [Nn]* ) echo " - User aborted installation of required dependencies."; exit;;
+			1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
 		esac
 	done
@@ -137,7 +129,7 @@ fi
 export CPATH="$(python-config --includes | awk '{print $1}' | cut -dI -f2):$CPATH" # Boost has trouble finding pyconfig.h
 printf "${COLOR_CYAN}[Checking Boost $( echo $BOOST_VERSION | sed 's/_/./g' ) library installation]${COLOR_NC}\\n"
 BOOSTVERSION=$( grep "#define BOOST_VERSION" "$HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
-if [ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]; then
+if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
 	printf "Installing Boost library...\\n"
 	execute bash -c "curl -LO https://dl.bintray.com/boostorg/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
 	&& tar -xjf boost_$BOOST_VERSION.tar.bz2 \
@@ -157,7 +149,7 @@ fi
 printf "\\n"
 
 printf "${COLOR_CYAN}[Checking MongoDB installation]${COLOR_NC}\\n"
-if [ ! -d $MONGODB_ROOT ]; then
+if [[ ! -d $MONGODB_ROOT ]]; then
 	printf "Installing MongoDB into ${MONGODB_ROOT}...\\n"
 	execute bash -c "curl -OL https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-$MONGODB_VERSION.tgz \
 	&& tar -xzf mongodb-osx-ssl-x86_64-$MONGODB_VERSION.tgz \
@@ -175,7 +167,7 @@ else
 	printf " - MongoDB found with correct version @ ${MONGODB_ROOT}.\\n"
 fi
 printf "${COLOR_CYAN}[Checking MongoDB C driver installation]${COLOR_NC}\\n"
-if [ ! -d $MONGO_C_DRIVER_ROOT ]; then
+if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
 	printf "Installing MongoDB C driver...\\n"
 	execute bash -c "curl -LO https://github.com/mongodb/mongo-c-driver/releases/download/$MONGO_C_DRIVER_VERSION/mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz \
 	&& tar -xzf mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz \
@@ -183,7 +175,7 @@ if [ ! -d $MONGO_C_DRIVER_ROOT ]; then
 	&& mkdir -p cmake-build \
 	&& cd cmake-build \
 	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DENABLE_BSON=ON -DENABLE_SSL=DARWIN -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
-	&& make -j$JOBS \
+	&& make -j${JOBS} \
 	&& make install \
 	&& cd ../.. \
 	&& rm mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz"
@@ -192,13 +184,13 @@ else
 	printf " - MongoDB C driver found with correct version @ ${MONGO_C_DRIVER_ROOT}.\\n"
 fi
 printf "${COLOR_CYAN}[Checking MongoDB C++ driver installation]${COLOR_NC}\\n"
-if [ "$(grep "Version:" $HOME/lib/pkgconfig/libmongocxx-static.pc 2>/dev/null | tr -s ' ' | awk '{print $2}' || true)" != $MONGO_CXX_DRIVER_VERSION ]; then
+if [[ "$(grep "Version:" $HOME/lib/pkgconfig/libmongocxx-static.pc 2>/dev/null | tr -s ' ' | awk '{print $2}' || true)" != $MONGO_CXX_DRIVER_VERSION ]]; then
 	printf "Installing MongoDB C++ driver...\\n"
 	execute bash -c "curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r${MONGO_CXX_DRIVER_VERSION}.tar.gz -o mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& tar -xzf mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& cd mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}/build \
 	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
-	&& make -j$JOBS VERBOSE=1 \
+	&& make -j${JOBS} VERBOSE=1 \
 	&& make install \
 	&& cd ../.. \
 	&& rm -f mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz"
@@ -211,7 +203,7 @@ printf "\\n"
 
 # We install llvm into /usr/local/opt using brew install llvm@4
 printf "${COLOR_CYAN}[Checking LLVM 4 support}${COLOR_NC}\\n"
-if [ ! -d $LLVM_ROOT ]; then
+if [[ ! -d $LLVM_ROOT ]]; then
 	execute ln -s /usr/local/opt/llvm@4 $LLVM_ROOT
 	printf " - LLVM successfully linked from /usr/local/opt/llvm@4 to ${LLVM_ROOT}\\n"
 else

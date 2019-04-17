@@ -3,9 +3,6 @@
 export DRYRUN=true
 export VERBOSE=true
 
-# Arrays should return with newlines so we can do something like "${output##*$'\n'}" to get the last line
-IFS=$'\n'
-
 export HOME="$BATS_TMPDIR/bats-eosio-user-home" # Ensure $HOME is available for all scripts
 mkdir -p $HOME
 

@@ -33,7 +33,7 @@ export DOXYGEN_ROOT=${SRC_LOCATION}/doxygen-${DOXYGEN_VERSION}
 export TINI_VERSION=0.18.0
 export DISK_MIN=5
 
-ARCH=$( uname )
+export CPU_CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 CMAKE_BUILD_TYPE=Release
 DOXYGEN=false
 ENABLE_COVERAGE_TESTING=false

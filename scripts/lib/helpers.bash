@@ -1,3 +1,8 @@
+[[ -z "${VERBOSE}" ]] && export VERBOSE=false || echo "[VERBOSE OUTPUT ENABLED]" # Support tests + Disable execution messages in STDOUT
+[[ -z "${DRYRUN}" ]] && export DRYRUN=false || echo "[DRYRUN ENABLED]" # Support tests + Disable execution, just STDOUT
+# Arrays should return with newlines so we can do something like "${output##*$'\n'}" to get the last line
+IFS=$'\n'
+
 export COLOR_NC=$(tput sgr0) # No Color
 export COLOR_RED=$(tput setaf 1)
 export COLOR_GREEN=$(tput setaf 2)
@@ -14,7 +19,7 @@ function execute() {
 
 function setup-tmp() {
   # Use current directory's tmp directory if noexec is enabled for /tmp
-  if (mount | grep "/tmp " | grep --quiet noexec); then
+  if (mount | grep "/tmp " | grep --quiet noexec) 2>/dev/null; then
     [[ -z "${REPO_ROOT}" ]] && echo "\$REPO_ROOT not set" && exit 1
     mkdir -p $REPO_ROOT/tmp
     TEMP_DIR="${REPO_ROOT}/tmp"
@@ -23,7 +28,6 @@ function setup-tmp() {
     TEMP_DIR="/tmp"
   fi
 }
-
 function ensure-git-clone() {
   if [ ! -d "${REPO_ROOT}/.git" ]; then
     printf "\\nThis build script only works with sources cloned from git\\n"
@@ -33,7 +37,7 @@ function ensure-git-clone() {
 }
 
 function ensure-submodules-up-to-date() {
-  if [[ $(git submodule status --recursive | grep -c "^[+\-]") -gt 0 ]]; then
+  if [[ $VERBOSE == false ]] && [[ $(execute 'git submodule status --recursive | grep -c "^[+\-]"') -gt 0 ]]; then
     printf "git submodules are not up to date.\\n"
     printf "Please run the command 'git submodule update --init --recursive'.\\n"
     exit 1
