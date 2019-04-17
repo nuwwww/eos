@@ -32,6 +32,7 @@ TEST_LABEL="[eosio_build_ubuntu16.04]"
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/apt-get update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: dpkg-query -l make") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu1604-") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit

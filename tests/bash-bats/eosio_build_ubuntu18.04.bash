@@ -2,7 +2,7 @@
 load test_helper
 
 SCRIPT_LOCATION="scripts/eosio_build.bash"
-TEST_LABEL="[eosio_build_ubuntu16.04]"
+TEST_LABEL="[eosio_build_ubuntu18.04]"
 
 [[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
 [[ $NAME == "Ubuntu" ]] || exit 1
@@ -13,8 +13,7 @@ TEST_LABEL="[eosio_build_ubuntu16.04]"
 @test "${TEST_LABEL} > Testing -y/NONINTERACTIVE/PROCEED" {
     # FOR LOOP EACH PROMPT AND TEST THE SAME SET OF TESTS
     run bash -c "./$SCRIPT_LOCATION -y"
-    debug
-    # [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
 }
 
 @test "${TEST_LABEL} > Testing prompts" {
@@ -32,6 +31,8 @@ TEST_LABEL="[eosio_build_ubuntu16.04]"
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/apt-get update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: dpkg-query -l make") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu1804-") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit
