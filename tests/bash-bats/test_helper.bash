@@ -32,7 +32,7 @@ debug() {
 
 trap teardown EXIT
 teardown() { # teardown is run once after each test, even if it fails
-  echo -e "\n-- CLEANUP --" >&3
+  # echo -e "\n-- CLEANUP --" >&3
   [[ -d "$HOME" ]] && rm -rf "$HOME"
-  echo -e "-- END CLEANUP --\n" >&3
+  # echo -e "-- END CLEANUP --\n" >&3
 }
