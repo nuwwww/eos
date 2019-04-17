@@ -114,29 +114,13 @@ echo "Architecture: ${ARCH}"
 if [ "$ARCH" == "Linux" ]; then
    OPENSSL_ROOT_DIR=/usr/include/openssl
    case $NAME in
-      "Amazon Linux AMI")
-         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux1.bash"
-         CXX_COMPILER=g++
-         C_COMPILER=gcc
-      ;;
-      "Amazon Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux2.bash"
+      "Amazon Linux AMI" | "Amazon Linux")
+         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux.bash"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "CentOS Linux")
          FILE="${REPO_ROOT}/scripts/eosio_build_centos7.bash"
-         CXX_COMPILER=g++
-         C_COMPILER=gcc
-      ;;
-      "elementary OS")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.bash"
-         CXX_COMPILER=clang++-4.0
-         C_COMPILER=clang-4.0
-      ;;
-      "Fedora")
-         export CPATH=/usr/include/llvm4.0:$CPATH # llvm4.0 for fedora package path inclusion
-         FILE="${REPO_ROOT}/scripts/eosio_build_fedora.bash"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;

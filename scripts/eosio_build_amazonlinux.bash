@@ -1,4 +1,11 @@
-( [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
+# Ensure proper versions are being used
+if [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/\.//g')" > 201709 ]]; then
+	DEPS_FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux1_deps"
+elif [[ "${NAME}" == "Amazon Linux" ]] && [[ $VERSION == 2 ]]; then
+	DEPS_FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux2_deps"
+else
+	echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
+fi
 
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
@@ -50,7 +57,7 @@ while read -r testee tester; do
 		echo " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found."
 		(( COUNT++ ))
 	fi
-done < "${REPO_ROOT}/scripts/eosio_build_amazonlinux1_deps"
+done < $DEPS_FILE
 echo ""
 if [ "${COUNT}" -gt 1 ]; then
 	while true; do
