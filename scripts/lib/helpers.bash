@@ -13,6 +13,7 @@ if [[ $- == *i* ]]; then # Disable if the shell isn't interactive (avoids: tput:
   export COLOR_CYAN=$(tput setaf 6)
   export COLOR_WHITE=$(tput setaf 7)
 fi
+
 function execute() {
   ( [[ ! -z "${VERBOSE}" ]] && $VERBOSE ) && echo " - Executing: $@"
   ( [[ ! -z "${DRYRUN}" ]] && $DRYRUN ) || "$@"
@@ -38,7 +39,7 @@ function ensure-git-clone() {
 }
 
 function ensure-submodules-up-to-date() {
-  if [[ $DRYRUN == false ]] && [[ $(execute 'git submodule status --recursive | grep -c "^[+\-]"') -gt 0 ]]; then
+  if [[ $DRYRUN == false ]] && [[ $(execute git submodule status --recursive | grep -c \"^[+\-]\") -gt 0 ]]; then
     printf "git submodules are not up to date.\\n"
     printf "Please run the command 'git submodule update --init --recursive'.\\n"
     exit 1
