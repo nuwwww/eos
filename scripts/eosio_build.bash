@@ -127,7 +127,7 @@ if [ "$ARCH" == "Linux" ]; then
          C_COMPILER=gcc
       ;;
       "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_centos.bash"
+         FILE="${REPO_ROOT}/scripts/eosio_build_centos7.bash"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;

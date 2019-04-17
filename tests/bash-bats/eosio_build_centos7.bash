@@ -2,10 +2,10 @@
 load test_helper
 
 SCRIPT_LOCATION="scripts/eosio_build.bash"
-TEST_LABEL="[eosio_build_amazonlinux1]"
+TEST_LABEL="[eosio_build_centos7]"
 
 [[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
-[[ $NAME == "Amazon Linux AMI" ]] || exit 1
+[[ $NAME == "CentOS Linux" ]] || exit 1
 
 # A helper function is available to show output and status: `debug`
 
@@ -21,7 +21,7 @@ TEST_LABEL="[eosio_build_amazonlinux1]"
     [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
     ## First no shows "aborting"  
     run bash -c "printf \"n\n%.0s\" {1..2} | ./$SCRIPT_LOCATION"
-    [[ "${output##*$'\n'}" =~ "- User aborted installation of required dependencies." ]] || exit
+    [[ "${output##*$'\n'}" =~ "- User aborted installation of required Centos Software Collections Repository" ]] || exit
 }
 
 @test "${TEST_LABEL} > Testing executions" {

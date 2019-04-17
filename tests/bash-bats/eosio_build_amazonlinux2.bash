@@ -1,17 +1,18 @@
 #!/usr/bin/env bats
 load test_helper
 
-[[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
-[[ $NAME == "Amazon Linux" ]] || exit 1
-
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_amazonlinux2]"
+
+[[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
+[[ $NAME == "Amazon Linux" ]] || exit 1
 
 # A helper function is available to show output and status: `debug`
 
 @test "${TEST_LABEL} > Testing -y/NONINTERACTIVE/PROCEED" {
     # FOR LOOP EACH PROMPT AND TEST THE SAME SET OF TESTS
     run bash -c "./$SCRIPT_LOCATION -y"
+    debug
     [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
 }
 

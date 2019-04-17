@@ -1,4 +1,4 @@
-( [[ "${NAME}" == "Amazon Linux" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
+( [[ $NAME == "CentOS Linux" ]] && [[ "$(echo ${VERSION} | sed 's/ .*//g')" < 7 ]] ) && echo " - You must be running Centos 7 or higher to install EOSIO." && exit 1
 
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
@@ -18,7 +18,7 @@ echo "Disk space total: ${DISK_TOTAL}Gb"
 echo "Disk space available: ${DISK_AVAIL}G"
 
 [[ $MEM_GIG -lt 7 ]] && echo "Your system must have 7 or more Gigabytes of physical memory installed." && exit 1
-
+echo ""
 echo "${COLOR_CYAN}[Checking YUM installation]${COLOR_NC}"
 if ! YUM=$( command -v yum 2>/dev/null ); then echo " - YUM must be installed to compile EOS.IO." && exit 1
 else echo "Yum installation found at ${YUM}."; fi
@@ -39,6 +39,58 @@ while true; do
 		* ) echo "Please type 'y' for yes or 'n' for no.";;
 	esac
 done
+
+echo "${COLOR_CYAN}[Checking installation of Centos Software Collections Repository]${COLOR_NC}"
+SCL=$( rpm -qa | grep -E 'centos-release-scl-[0-9].*' || true )
+if [[ -z "${SCL}" ]]; then
+	while true; do
+		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install and enable the Centos Software Collections Repository? (y/n)?${COLOR_NC} " PROCEED
+		case $PROCEED in
+			"" ) echo "What would you like to do?";;
+			0 | true | [Yy]* )
+				echo "Installing Centos Software Collections Repository..."
+				if ! execute "${YUM}" -y --enablerepo=extras install centos-release-scl 2>/dev/null; then
+					echo " - Centos Software Collections Repository installation failed." && exit 1;
+				else
+					echo " - Centos Software Collections Repository installed successfully."
+				fi
+			break;;
+			1 | false | [Nn]* ) echo " - User aborted installation of required Centos Software Collections Repository."; exit;;
+			* ) echo "Please type 'y' for yes or 'n' for no.";;
+		esac
+	done
+else
+	echo " - ${SCL} found."
+fi
+echo "${COLOR_CYAN}[Checking installation of devtoolset-7]${COLOR_NC}"
+DEVTOOLSET=$( rpm -qa | grep -E 'devtoolset-7-[0-9].*' || true )
+if [[ -z "${DEVTOOLSET}" ]]; then
+	while true; do
+		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install and enable devtoolset-7? (y/n)?${COLOR_NC} " PROCEED
+		case $PROCEED in
+			"" ) echo "What would you like to do?";;
+			0 | true | [Yy]* )
+				echo "Installing devtoolset-7..."
+				if ! execute "${YUM}" install -y devtoolset-7; then
+						echo " - Centos devtoolset-7 installation failed." && exit 1;
+				else
+						echo " - Centos devtoolset installed successfully."
+				fi
+			break;;
+			1 | false | [Nn]* ) echo " - User aborted installation of required devtoolset-7."; exit;;
+			* ) echo "Please type 'y' for yes or 'n' for no.";;
+		esac
+	done
+else
+	echo " - ${DEVTOOLSET} found."
+fi
+if $DRYRUN || [ -d /opt/rh/devtoolset-7 ]; then
+	echo "${COLOR_CYAN}[Enabling Centos devtoolset-7 (so we can use GCC 7)]${COLOR_NC}"
+	execute source /opt/rh/devtoolset-7/enable
+	echo " ${COLOR_GREEN}- Centos devtoolset-7 successfully enabled!${COLOR_NC}"
+	echo ""
+fi
+
 echo "${COLOR_CYAN}[Checking RPM for installed dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
@@ -50,7 +102,7 @@ while read -r testee tester; do
 		echo " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found."
 		(( COUNT++ ))
 	fi
-done < "${REPO_ROOT}/scripts/eosio_build_amazonlinux2_deps"
+done < "${REPO_ROOT}/scripts/eosio_build_centos7_deps"
 echo ""
 if [ "${COUNT}" -gt 1 ]; then
 	while true; do
@@ -73,6 +125,14 @@ fi
 IFS=$OLDIFS
 
 echo ""
+
+export PYTHON3PATH="/opt/rh/rh-python36"
+if $DRYRUN || [ -d $PYTHON3PATH ]; then
+	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
+	execute source $PYTHON3PATH/enable
+	echo " ${COLOR_GREEN}- Python36 successfully enabled!${COLOR_NC}"
+	echo ""
+fi
 
 echo "${COLOR_CYAN}[Checking CMAKE installation]${COLOR_NC}"
 if [[ -z "${CMAKE}" ]]; then
