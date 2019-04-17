@@ -3,7 +3,7 @@
 # Arrays should return with newlines so we can do something like "${output##*$'\n'}" to get the last line
 IFS=$'\n'
 
-if [[ $- == *i* ]]; then
+if [[ $- == *i* ]]; then # Disable if the shell isn't interactive (avoids: tput: No value for $TERM and no -T specified)
   export COLOR_NC=$(tput sgr0) # No Color
   export COLOR_RED=$(tput setaf 1)
   export COLOR_GREEN=$(tput setaf 2)
