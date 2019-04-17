@@ -4,9 +4,9 @@ load test_helper
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_ubuntu]"
 
-[[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
-[[ $NAME == "Ubuntu" ]] || exit 1
-( [[ $VERSION_ID == "18.04" ]] || [[ $VERSION_ID == "16.04" ]] ) || exit 1
+[[ $ARCH == "Linux" ]] || exit 0 # Exit 0 is required for pipeline
+[[ $NAME == "Ubuntu" ]] || exit 0 # Exit 0 is required for pipeline
+( [[ $VERSION_ID == "18.04" ]] || [[ $VERSION_ID == "16.04" ]] ) || exit 0 # Exit 0 is required for pipeline
 
 # A helper function is available to show output and status: `debug`
 

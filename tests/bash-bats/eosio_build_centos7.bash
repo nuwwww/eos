@@ -4,8 +4,8 @@ load test_helper
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_centos7]"
 
-[[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
-[[ $NAME == "CentOS Linux" ]] || exit 1
+[[ $ARCH == "Linux" ]] || exit 0 # Exit 0 is required for pipeline
+[[ $NAME == "CentOS Linux" ]] || exit 0 # Exit 0 is required for pipeline
 
 # A helper function is available to show output and status: `debug`
 

@@ -4,8 +4,8 @@ load test_helper
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_darwin]"
 
-[[ $ARCH == "Darwin" ]] || exit 1 # Skip if we're not on linux
-[[ $NAME == "Mac OS X" ]] || exit 1
+[[ $ARCH == "Darwin" ]] || exit 0 # Exit 0 is required for pipeline
+[[ $NAME == "Mac OS X" ]] || exit 0 # Exit 0 is required for pipeline
 
 # A helper function is available to show output and status: `debug`
 
