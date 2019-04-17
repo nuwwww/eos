@@ -141,15 +141,9 @@ if [ "$ARCH" == "Linux" ]; then
          C_COMPILER=gcc
       ;;
       "Ubuntu")
-         if [[ $VERSION_ID == "16.04" ]]; then
-            FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu16.04.bash"
-            CXX_COMPILER=clang++-4.0
-            C_COMPILER=clang-4.0
-         elif [[ $VERSION_ID == "18.04" ]]; then
-            FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu18.04.bash"
-            CXX_COMPILER=clang++-4.0
-            C_COMPILER=clang-4.0
-         fi
+         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.bash"
+         CXX_COMPILER=clang++-4.0
+         C_COMPILER=clang-4.0
       ;;
       *) printf " - Unsupported Linux Distribution." && exit 1;;
    esac

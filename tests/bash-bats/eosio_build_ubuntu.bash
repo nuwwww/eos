@@ -2,11 +2,11 @@
 load test_helper
 
 SCRIPT_LOCATION="scripts/eosio_build.bash"
-TEST_LABEL="[eosio_build_ubuntu16.04]"
+TEST_LABEL="[eosio_build_ubuntu]"
 
 [[ $ARCH == "Linux" ]] || exit 1 # Skip if we're not on linux
 [[ $NAME == "Ubuntu" ]] || exit 1
-[[ $VERSION_ID == "16.04" ]] || exit 1
+( [[ $VERSION_ID == "18.04" ]] || [[ $VERSION_ID == "16.04" ]] ) || exit 1
 
 # A helper function is available to show output and status: `debug`
 
@@ -36,12 +36,10 @@ TEST_LABEL="[eosio_build_ubuntu16.04]"
 
 @test "${TEST_LABEL} > Testing executions" {
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
-    ### Make sure deps are loaded properly
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/apt-get update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: dpkg-query -l make") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu1604-") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu.*04-") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit
