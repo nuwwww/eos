@@ -33,13 +33,6 @@ VERSION=3.0 # Build script version (change this to re-build the CICD image)
 ##########################################################################
 
 TIME_BEGIN=$( date -u +%s )
-
-# Obtain dependency versions; Must come first in the script
-. ./scripts/.environment
-
-# Load bash script helper functions
-. ./scripts/lib/helpers.bash
-
 # Load eosio specific helper functions
 . ./scripts/lib/eosio.bash
 # Setup directories and envs we need

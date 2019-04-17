@@ -2,7 +2,7 @@
 load test_helper
 
 SCRIPT_LOCATION="scripts/eosio_uninstall.bash"
-TEST_LABEL="[uninstall]"
+TEST_LABEL="[eosio_uninstall]"
 
 # A helper function is available to show output and status: `debug`
 
@@ -37,6 +37,8 @@ TEST_LABEL="[uninstall]"
   ### Make sure deps are loaded properly
   [[ "${output}" =~ "Executing: rm -rf" ]] || exit
   [[ "${output}" =~ "Executing: brew uninstall cmake --force" ]] || exit
+  # Legacy support
+  [[ ! -z $( echo $output | grep "Executing: rmdir ${HOME}/src") ]] || exit
 }
 
 
@@ -51,4 +53,3 @@ TEST_LABEL="[uninstall]"
   ([[ ! "${output[*]}" =~ "Library/Application\ Support/eosio" ]] && [[ ! "${output[*]}" =~ ".local/share/eosio" ]]) && exit
   [[ "${output##*$'\n'}" == "[EOSIO Removal Complete]" ]] || exit
 }
-

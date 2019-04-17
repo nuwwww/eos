@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
+
 # Load bash script helper functions
-. ./scripts/lib/helpers.bash
+. ./scripts/lib/eosio.bash
 
 usage() {
    printf "Usage --- \\n $ %s [ --full ] [ --force ]\\n
@@ -27,6 +28,17 @@ usage() {
    $HOME/bin/*cmake* 
    $HOME/bin/cpack
    $HOME/src/mongo*
+   $HOME/opt/mongo*
+   $HOME/bin/mongo*
+   $HOME/lib/cmake
+   $HOME/lib/libbson*
+   $HOME/lib/libmongo*
+   $HOME/lib/pkgconfig
+   $HOME/include/bsoncxx*
+   $HOME/include/libbson*
+   $HOME/include/libmongo*
+   $HOME/include/mongocxx*
+   $HOME/share/mongo*
 )
 
 # User input handling
@@ -61,7 +73,9 @@ fi
 if [[ ! -z $@ ]] && [[ ! $@ =~ [[:space:]]?--force[[:space:]]? ]] && [[ ! $@ =~ [[:space:]]?--full[[:space:]]? ]]; then usage && exit; fi
 
 # If eosio folder exist, add it to the INSTALL_PATHS for deletion
-[[ -d "$HOME/opt/eosio" ]] && INSTALL_PATHS+=("$HOME/opt/eosio")
+[[ -d "${HOME}/opt/eosio" ]] && INSTALL_PATHS+=("$HOME/opt/eosio")
+# As of 1.8.0, we're using a versioned directories under home: https://github.com/EOSIO/eos/issues/6940
+[[ -d "${EOSIO_HOME}" ]] && INSTALL_PATHS+=("${EOSIO_HOME}") # EOSIO_HOME set in .environment
 
 # Removal
 [[ ! -z "${EOSIO_LOCATION}" ]] && printf "[EOSIO Installation Found: ${EOSIO_LOCATION}]\n"
@@ -71,7 +85,7 @@ while true; do
       "" ) echo "What would you like to do?";;
       0 | true | [Yy]* )
          echo "[Removing EOSIO and Dependencies]"
-         if [[ $( uname ) == "Darwin" ]]; then
+         if [[ $ARCH == "Darwin" ]]; then
             for package in $(cat scripts/eosio_build_darwin_deps | cut -d, -f1 2>/dev/null); do
                while true; do
                   [[ $FORCED == false ]] && read -p "Do you wish to uninstall and unlink all brew installed ${package} versions? (y/n) " DEP_PROCEED
@@ -91,19 +105,27 @@ while true; do
          if $FULL; then
             ## Add both just to be safe
             INSTALL_PATHS+=("${HOME}/Library/Application\ Support/eosio")
-            INSTALL_PATHS+=("$HOME/.local/share/eosio")
+            INSTALL_PATHS+=("${HOME}/.local/share/eosio")
          fi
-         # Arrays should return with newlines as Application\ Support will split into two
-         OLDIFS=$IFS
-         IFS=$'\n'
+         # Version < 1.8.0; Before we started using ~/eosio/1.8.x
+         # Arrays should return with newlines (IFS=\n;helpers.bash) as Application\ Support will split into two
          for INSTALL_PATH in ${INSTALL_PATHS[@]}; do
             execute rm -rf $INSTALL_PATH
          done
-         IFS=$OLDIFS
+         # Cleanup directories if they're empty (else the user had the directory there already for a reason)
+         execute rmdir $HOME/src 2>/dev/null
+         execute rmdir $HOME/opt 2>/dev/null
+         execute rmdir $HOME/var/log/mongodb 2>/dev/null
+         execute rmdir $HOME/var/log 2>/dev/null
+         execute rmdir $HOME/var 2>/dev/null
+         execute rmdir $HOME/bin 2>/dev/null
+         execute rmdir $HOME/etc 2>/dev/null
+         execute rmdir $HOME/lib 2>/dev/null
+         execute rmdir $HOME/data/mongodb 2>/dev/null
+         execute rmdir $HOME/data 2>/dev/null
          echo "[EOSIO Removal Complete]"
          break;;
       1 | false | [Nn]* ) echo " - Cancelled EOSIO Removal!"; exit 1;;
       * ) echo "Please type 'y' for yes or 'n' for no.";;
    esac
 done
-

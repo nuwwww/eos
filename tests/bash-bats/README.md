@@ -22,3 +22,9 @@ For each bash script we have, there should be a separate .sh file within ROOT/te
 
       10 tests, 0 failures
     ```
+
+---
+
+### Running Docker Environments for Testing
+  - `docker run -v $HOME/eos:/eos -ti amazonlinux:1 /bin/bash`
+    - You'll need to modify the volume path ($HOME/eos) to indicate where you've got eos cloned.

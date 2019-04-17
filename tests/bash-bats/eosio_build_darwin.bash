@@ -4,6 +4,9 @@ load test_helper
 SCRIPT_LOCATION="scripts/eosio_build.bash"
 TEST_LABEL="[eosio_build_darwin]"
 
+[[ $ARCH == "Darwin" ]] || exit 1 # Skip if we're not on linux
+[[ $NAME == "Mac OS X" ]] || exit 1
+
 # A helper function is available to show output and status: `debug`
 
 @test "${TEST_LABEL} > Testing -y/NONINTERACTIVE/PROCEED" {
@@ -31,7 +34,7 @@ TEST_LABEL="[eosio_build_darwin]"
   [[ ! -z $(echo "${output}" | grep "[Updating HomeBrew]") ]] || exit
   [[ ! -z $(echo "${output}" | grep "brew tap eosio/eosio") ]] || exit
   [[ ! -z $(echo "${output}" | grep "brew install cmake") ]] || exit
-  [[ ! -z $(echo "${output}" | grep "${HOME}/src/boost") ]] || exit
+  [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
   [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
   [[ ! -z $(echo "${output}" | grep "Executing: /usr/local/bin/cmake") ]] || exit
 }
