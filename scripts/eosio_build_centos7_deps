@@ -18,4 +18,4 @@ gettext-devel,rpm -qa
 file,rpm -qa
 sudo,rpm -qa
 libusbx-devel,rpm -qa
-libcurl-devel
+libcurl-devel,rpm -qa

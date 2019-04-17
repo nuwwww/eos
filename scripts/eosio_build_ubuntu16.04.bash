@@ -1,4 +1,4 @@
-( [[ $NAME == "CentOS Linux" ]] && [[ "$(echo ${VERSION} | sed 's/ .*//g')" < 7 ]] ) && echo " - You must be running Centos 7 or higher to install EOSIO." && exit 1
+( [[ "${NAME}" == "Ubuntu" ]] && [[ "$(echo ${VERSION_ID} | sed 's/\.//g')" < 1604 ]] ) && echo " - You must be running 16.04.x or higher to install EOSIO." && exit 1
 
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
@@ -18,21 +18,24 @@ echo "Disk space total: ${DISK_TOTAL}Gb"
 echo "Disk space available: ${DISK_AVAIL}G"
 
 [[ $MEM_GIG -lt 7 ]] && echo "Your system must have 7 or more Gigabytes of physical memory installed." && exit 1
-echo ""
-echo "${COLOR_CYAN}[Checking YUM installation]${COLOR_NC}"
-if ! YUM=$( command -v yum 2>/dev/null ); then echo " - YUM must be installed to compile EOS.IO." && exit 1
-else echo "Yum installation found at ${YUM}."; fi
+
+# llvm-4.0 is installed into /usr/lib/llvm-4.0
+# clang is necessary for building on ubuntu
+
+echo "${COLOR_CYAN}[Checking APT-GET installation]${COLOR_NC}"
+if ! APTGET=$( command -v apt-get 2>/dev/null ); then echo " - APT-GET must be installed to compile EOS.IO." && exit 1
+else echo "APT-GET installation found at ${APTGET}."; fi
 
 while true; do
-	[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update YUM repositories? (y/n)?${COLOR_NC} " PROCEED
+	[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update APT-GET repositories? (y/n)?${COLOR_NC} " PROCEED
 	case $PROCEED in
 		"" ) echo "What would you like to do?";;
 		0 | true | [Yy]* )
-			if ! execute sudo $YUM -y update; then
-				echo " - ${COLOR_RED}YUM update failed.${COLOR_NC}"
+			if ! execute sudo $APTGET update; then
+				echo " - ${COLOR_RED}APT-GET update failed.${COLOR_NC}"
 				exit 1;
 			else
-				echo " - ${COLOR_GREEN}YUM update complete.${COLOR_NC}"
+				echo " - ${COLOR_GREEN}APT-GET update complete.${COLOR_NC}"
 			fi
 		break;;
 		1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
@@ -40,58 +43,7 @@ while true; do
 	esac
 done
 
-echo "${COLOR_CYAN}[Checking installation of Centos Software Collections Repository]${COLOR_NC}"
-SCL=$( rpm -qa | grep -E 'centos-release-scl-[0-9].*' || true )
-if [[ -z "${SCL}" ]]; then
-	while true; do
-		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install and enable the Centos Software Collections Repository? (y/n)?${COLOR_NC} " PROCEED
-		case $PROCEED in
-			"" ) echo "What would you like to do?";;
-			0 | true | [Yy]* )
-				echo "Installing Centos Software Collections Repository..."
-				if ! execute "${YUM}" -y --enablerepo=extras install centos-release-scl 2>/dev/null; then
-					echo " - Centos Software Collections Repository installation failed." && exit 1;
-				else
-					echo " - Centos Software Collections Repository installed successfully."
-				fi
-			break;;
-			1 | false | [Nn]* ) echo " - User aborted installation of required Centos Software Collections Repository."; exit;;
-			* ) echo "Please type 'y' for yes or 'n' for no.";;
-		esac
-	done
-else
-	echo " - ${SCL} found."
-fi
-echo "${COLOR_CYAN}[Checking installation of devtoolset-7]${COLOR_NC}"
-DEVTOOLSET=$( rpm -qa | grep -E 'devtoolset-7-[0-9].*' || true )
-if [[ -z "${DEVTOOLSET}" ]]; then
-	while true; do
-		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install and enable devtoolset-7? (y/n)?${COLOR_NC} " PROCEED
-		case $PROCEED in
-			"" ) echo "What would you like to do?";;
-			0 | true | [Yy]* )
-				echo "Installing devtoolset-7..."
-				if ! execute "${YUM}" install -y devtoolset-7; then
-						echo " - Centos devtoolset-7 installation failed." && exit 1;
-				else
-						echo " - Centos devtoolset installed successfully."
-				fi
-			break;;
-			1 | false | [Nn]* ) echo " - User aborted installation of required devtoolset-7."; exit;;
-			* ) echo "Please type 'y' for yes or 'n' for no.";;
-		esac
-	done
-else
-	echo " - ${DEVTOOLSET} found."
-fi
-if $DRYRUN || [ -d /opt/rh/devtoolset-7 ]; then
-	echo "${COLOR_CYAN}[Enabling Centos devtoolset-7 (so we can use GCC 7)]${COLOR_NC}"
-	execute source /opt/rh/devtoolset-7/enable
-	echo " ${COLOR_GREEN}- Centos devtoolset-7 successfully enabled!${COLOR_NC}"
-	echo ""
-fi
-
-echo "${COLOR_CYAN}[Checking RPM for installed dependencies]${COLOR_NC}"
+echo "${COLOR_CYAN}[Checking for installed package dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r testee tester; do
@@ -102,8 +54,11 @@ while read -r testee tester; do
 		echo " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found."
 		(( COUNT++ ))
 	fi
-done < "${REPO_ROOT}/scripts/eosio_build_centos7_deps"
+done < "${REPO_ROOT}/scripts/eosio_build_ubuntu16.04_deps"
 echo ""
+if [[ "${ENABLE_CODE_COVERAGE}" == true ]]; then
+	DEPS+=(lcov)
+fi
 if [ "${COUNT}" -gt 1 ]; then
 	while true; do
 		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC} " PROCEED
@@ -112,7 +67,7 @@ if [ "${COUNT}" -gt 1 ]; then
 			0 | true | [Yy]* )
 				for DEP in $DEPS; do
 					# Eval to support string/arguments with $DEP
-					execute sudo $YUM -y install ${DEP}
+					execute sudo $APTGET -y install ${DEP}
 				done
 			break;;
 			1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
@@ -120,19 +75,11 @@ if [ "${COUNT}" -gt 1 ]; then
 		esac
 	done
 else
-	echo " - No required YUM dependencies to install."
+	echo " - No required dependencies to install."
 fi
 IFS=$OLDIFS
 
 echo ""
-
-export PYTHON3PATH="/opt/rh/rh-python36"
-if $DRYRUN || [ -d $PYTHON3PATH ]; then
-	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
-	execute source $PYTHON3PATH/enable
-	echo " ${COLOR_GREEN}- Python36 successfully enabled!${COLOR_NC}"
-	echo ""
-fi
 
 echo "${COLOR_CYAN}[Checking CMAKE installation]${COLOR_NC}"
 if [[ ! -e "${CMAKE}" ]]; then
@@ -153,7 +100,7 @@ fi
 echo ""
 
 echo "${COLOR_CYAN}[Checking Boost $( echo $BOOST_VERSION | sed 's/_/./g' ) library installation]${COLOR_NC}"
-BOOSTVERSION=$( grep "#define BOOST_VERSION" "$HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
+BOOSTVERSION=$( grep "#define BOOST_VERSION" "$EOSIO_HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
 if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
 	echo "Installing Boost library..."
 	execute bash -c "curl -LO https://dl.bintray.com/boostorg/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
@@ -174,22 +121,22 @@ fi
 echo ""
 
 echo "${COLOR_CYAN}[Checking MongoDB installation]${COLOR_NC}"
-if [[ ! -d $MONGODB_ROOT ]]; then
+if [ ! -d $MONGODB_ROOT ]; then
 	echo "Installing MongoDB into ${MONGODB_ROOT}..."
-	execute bash -c "curl -OL https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-$MONGODB_VERSION.tgz \
-	&& tar -xzf mongodb-linux-x86_64-amazon-$MONGODB_VERSION.tgz \
-	&& mv $SRC_LOCATION/mongodb-linux-x86_64-amazon-$MONGODB_VERSION $MONGODB_ROOT \
+	execute bash -c "curl -OL http://downloads.mongodb.org/linux/mongodb-linux-x86_64-ubuntu$OS_MAJ$OS_MIN-$MONGODB_VERSION.tgz \
+	&& tar -xzf mongodb-linux-x86_64-ubuntu$OS_MAJ$OS_MIN-$MONGODB_VERSION.tgz \
+	&& mv $SRC_LOCATION/mongodb-linux-x86_64-ubuntu$OS_MAJ$OS_MIN-$MONGODB_VERSION $MONGODB_ROOT \
 	&& touch $MONGODB_LOG_LOCATION/mongod.log \
-	&& rm -f mongodb-linux-x86_64-amazon-$MONGODB_VERSION.tgz \
+	&& rm -f mongodb-linux-x86_64-ubuntu$OS_MAJ$OS_MIN-$MONGODB_VERSION.tgz \
 	&& cp -f $REPO_ROOT/scripts/mongod.conf $MONGODB_CONF \
 	&& mkdir -p $MONGODB_DATA_LOCATION \
 	&& rm -rf $MONGODB_LINK_LOCATION \
 	&& rm -rf $BIN_LOCATION/mongod \
 	&& ln -s $MONGODB_ROOT $MONGODB_LINK_LOCATION \
 	&& ln -s $MONGODB_LINK_LOCATION/bin/mongod $BIN_LOCATION/mongod"
-	echo " - MongoDB successfully installed @ ${MONGODB_ROOT}."
+	echo " - MongoDB successfully installed @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_LOCATION})."
 else
-	echo " - MongoDB found with correct version @ ${MONGODB_ROOT}."
+	echo " - MongoDB found with correct version @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_LOCATION})."
 fi
 echo "${COLOR_CYAN}[Checking MongoDB C driver installation]${COLOR_NC}"
 if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
@@ -199,7 +146,7 @@ if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
 	&& cd mongo-c-driver-$MONGO_C_DRIVER_VERSION \
 	&& mkdir -p cmake-build \
 	&& cd cmake-build \
-	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DENABLE_BSON=ON -DENABLE_SSL=OPENSSL -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
+	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$EOSIO_HOME -DENABLE_BSON=ON -DENABLE_SSL=OPENSSL -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
 	&& make -j${JOBS} \
 	&& make install \
 	&& cd ../.. \
@@ -214,7 +161,7 @@ if [[ ! -d $MONGO_CXX_DRIVER_ROOT ]]; then
 	execute bash -c "curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r$MONGO_CXX_DRIVER_VERSION.tar.gz -o mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz \
 	&& tar -xzf mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& cd mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION/build \
-	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
+	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$EOSIO_HOME .. \
 	&& make -j${JOBS} VERBOSE=1 \
 	&& make install \
 	&& cd ../.. \
@@ -227,17 +174,9 @@ fi
 echo ""
 
 echo "${COLOR_CYAN}[Checking LLVM 4 support}${COLOR_NC}"
-if [[ ! -d $LLVM_ROOT ]]; then
-	echo "Installing LLVM 4..."
-	execute bash -c "cd ../opt \
-	&& git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm && cd llvm \
-	&& mkdir build \
-	&& cd build \
-	&& $CMAKE -G \"Unix Makefiles\" -DCMAKE_INSTALL_PREFIX=\"${LLVM_ROOT}\" -DLLVM_TARGETS_TO_BUILD=\"host\" -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=\"Release\" .. \
-	&& make -j${JOBS} \
-	&& make install \
-	&& cd ../.."
-	echo " - LLVM successfully installed @ ${LLVM_ROOT}"
+if [ ! -d $LLVM_ROOT ]; then
+	execute ln -s /usr/lib/llvm-4.0 $LLVM_ROOT
+	echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
 else
 	echo " - LLVM found @ ${LLVM_ROOT}."
 fi

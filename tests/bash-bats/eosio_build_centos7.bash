@@ -30,6 +30,7 @@ TEST_LABEL="[eosio_build_centos7]"
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/yum -y update") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: rpm -qa make") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit

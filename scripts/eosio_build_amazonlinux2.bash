@@ -75,12 +75,12 @@ IFS=$OLDIFS
 echo ""
 
 echo "${COLOR_CYAN}[Checking CMAKE installation]${COLOR_NC}"
-if [[ -z "${CMAKE}" ]]; then
+if [[ ! -e "${CMAKE}" ]]; then
 	echo "Installing CMAKE..."
 	execute bash -c "curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
 	&& tar -xzf cmake-${CMAKE_VERSION}.tar.gz \
 	&& cd cmake-${CMAKE_VERSION} \
-	&& ./bootstrap --prefix=${HOME} \
+	&& ./bootstrap --prefix=${EOSIO_HOME} \
 	&& make -j${JOBS} \
 	&& make install \
 	&& cd .. \

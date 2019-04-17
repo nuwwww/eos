@@ -112,8 +112,8 @@ printf "Current branch: %s\\n" "$( execute git rev-parse --abbrev-ref HEAD )"
 export CMAKE=$(command -v cmake 2>/dev/null)
 echo "Architecture: ${ARCH}"
 if [ "$ARCH" == "Linux" ]; then
-   # Check if cmake is already installed or not and use source install location
-   if [[ -z "${CMAKE}" ]]; then export CMAKE=$HOME/bin/cmake; fi
+   # Check if cmake is not already installed on the machine, or, it's installed and it's not a version under $EOSIO_HOME, force set CMAKE again to the new location for installation
+   if [[ -z "${CMAKE}" ]] || ( [[ ! -z "${CMAKE}" ]] && [[ ! "${CMAKE}" =~ eosio ]] ); then export CMAKE=$EOSIO_HOME/bin/cmake; fi
    OPENSSL_ROOT_DIR=/usr/include/openssl
    case $NAME in
       "Amazon Linux AMI")
@@ -142,20 +142,12 @@ if [ "$ARCH" == "Linux" ]; then
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
-      "Linux Mint")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.bash"
-         CXX_COMPILER=clang++-4.0
-         C_COMPILER=clang-4.0
-      ;;
       "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.bash"
-         CXX_COMPILER=clang++-4.0
-         C_COMPILER=clang-4.0
-      ;;
-      "Debian GNU/Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.bash"
-         CXX_COMPILER=clang++-4.0
-         C_COMPILER=clang-4.0
+         if [[ $VERSION_ID == "16.04" ]]; then
+            FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu16.04.bash"
+            CXX_COMPILER=clang++-4.0
+            C_COMPILER=clang-4.0
+         fi
       ;;
       *) printf " - Unsupported Linux Distribution." && exit 1;;
    esac
@@ -165,7 +157,7 @@ if [ "$ARCH" == "Darwin" ]; then
    [[ -z "${CMAKE}" ]] && export CMAKE=/usr/local/bin/cmake # Check if cmake is already installed or not and use source install location
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
-   LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
+   LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$EOSIO_HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
    FILE="${SCRIPT_DIR}/eosio_build_darwin.bash"
    CXX_COMPILER=clang++
    C_COMPILER=clang
@@ -208,6 +200,6 @@ printf "\n"
 printf "${COLOR_CYAN}If you wish to perform tests to ensure functional code:${COLOR_NC}\\n"
 print_instructions
 printf "1. Start Mongo: ${BIN_LOCATION}/mongod --dbpath ${MONGODB_DATA_LOCATION} -f ${MONGODB_CONF} --logpath ${MONGODB_LOG_LOCATION}/mongod.log &\\n"
-printf "2. Run Tests: cd ./build && PATH=\$PATH:$HOME/opt/mongodb/bin make test\\n" # PATH is set as currently 'mongo' binary is required for the mongodb test
+printf "2. Run Tests: cd ./build && PATH=\$PATH:$EOSIO_HOME/opt/mongodb/bin make test\\n" # PATH is set as currently 'mongo' binary is required for the mongodb test
 printf "\n"
 resources
