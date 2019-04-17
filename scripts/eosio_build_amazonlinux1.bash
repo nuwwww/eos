@@ -1,14 +1,11 @@
-# Obtain OS NAME, and VERSION
-. /etc/os-release
-
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
 DISK_AVAIL_KB=$( df . | tail -1 | awk '{print $4}' )
 DISK_TOTAL=$(( DISK_TOTAL_KB / 1048576 ))
 DISK_AVAIL=$(( DISK_AVAIL_KB / 1048576 ))
 
-( [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && printf "You must be running Amazon Linux 2017.09 or higher to install EOSIO.\\n" && exit 1
-[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && printf "You must have at least %sGB of available storage to install EOSIO.\\n" "${DISK_MIN}" && exit 1
+( [[ "${NAME}" == "Amazon Linux AMI" ]] && [[ "$(echo ${VERSION} | sed 's/.//g')" -gt 201709 ]] ) && echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
+[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo "You must have at least ${DISK_MIN}GB of available storage to install EOSIO." && exit 1
 
 printf "${COLOR_CYAN}[Checking YUM installation]${COLOR_NC}\\n"
 if ! YUM=$( command -v yum 2>/dev/null ); then printf " - YUM must be installed to compile EOS.IO.\\n" && exit 1
@@ -66,7 +63,7 @@ IFS=$OLDIFS
 MEM_GIG=$(( ( ( $(cat /proc/meminfo | grep MemTotal | awk '{print $2}') / 1000 ) / 1000 ) ))
 export JOBS=$(( MEM_GIG > CPU_CORES ? CPU_CORES : MEM_GIG ))
 
-printf "\\nOS name: %s\\n" "${OS_NAME}"
+printf "\\nOS name: %s\\n" "${NAME}"
 printf "OS Version: %s\\n" "${VERSION_ID}"
 printf "CPU cores: %s\\n" "${CPU_CORES}"
 printf "Physical Memory: %sGb\\n" "${MEM_GIG}"
