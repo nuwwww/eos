@@ -118,7 +118,7 @@ if [ $COUNT -gt 1 ]; then
 					execute $BREW install $DEP
 				done
 				IFS="$OIFS"
-				echo "\n"
+				echo ""
 			break;;
 			1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
