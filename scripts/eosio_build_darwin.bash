@@ -13,7 +13,7 @@ avail_blks=$(df . | tail -1 | awk '{print $4}')
 DISK_TOTAL=$((total_blks / gbfactor ))
 DISK_AVAIL=$((avail_blks / gbfactor ))
 
-echo "\\nOS name: ${OS_NAME}"
+echo "OS name: ${NAME}"
 echo "OS Version: ${OS_VER}"
 echo "CPU cores: %s" "${CPU_CORES}"
 echo "Physical Memory: ${MEM_GIG} Gbytes"
@@ -70,16 +70,16 @@ else
 fi
 
 if [ ! -d /usr/local/Frameworks ]; then
-	echo "\\n${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}"
-	echo "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks\\n"
+	echo "${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}"
+	echo "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks"
 	exit 1;
 fi
 
-echo "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}"
+echo "${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r name path; do
-	if execute stat $path &>/dev/null && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+	if ( $DRYRUN && $(execute stat $path) || $(execute stat $path &>/dev/null) ) && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
 		echo " - ${name} ${COLOR_GREEN}found!${COLOR_NC}"
 		continue
 	fi
@@ -94,7 +94,7 @@ while read -r name path; do
 	echo " - ${name} ${COLOR_RED}NOT${COLOR_NC} found."
 	(( COUNT++ ))
 done < "${REPO_ROOT}/scripts/eosio_build_darwin_deps"
-echo "\n"
+echo ""
 if [ $COUNT -gt 1 ]; then
 	while true; do
 		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)${COLOR_NC} " PROCEED
