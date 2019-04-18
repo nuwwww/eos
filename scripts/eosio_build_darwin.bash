@@ -79,7 +79,7 @@ echo "${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r name path; do
-	if ( $DRYRUN && $(execute stat $path) || $(execute stat $path &>/dev/null) ) && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+	if ( $VERBOSE && $(execute stat $path) || $(execute stat $path &>/dev/null) ); then # DRYRUN TO SUPPORT TESTS
 		echo " - ${name} ${COLOR_GREEN}found!${COLOR_NC}"
 		continue
 	fi
