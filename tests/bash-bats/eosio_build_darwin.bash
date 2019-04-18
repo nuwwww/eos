@@ -26,15 +26,18 @@ TEST_LABEL="[eosio_build_darwin]"
 
 @test "${TEST_LABEL} > Testing executions" {
   export CMAKE=/usr/local/bin/cmake # Necessary just in case it's not brew installed
+  touch $CMAKE
   run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
   ### Make sure deps are loaded properly
   [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
   [[ ! -z $(echo "${output}" | grep "Executing: /usr/bin/xcode-select --install") ]] || exit
-  [[ ! -z $(echo "${output}" | grep "Executing: stat /usr/local/bin/automake") ]] || exit
-  [[ ! -z $(echo "${output}" | grep automake.*found) ]] || exit
+  ## Testing if formula is installed
+  [[ ! -z $(echo "${output}" | grep "cmake found!") ]] || exit
+  [[ ! -z $(echo "${output}" | grep "automake NOT found.") ]] || exit
+  rm -f $CMAKE
   [[ ! -z $(echo "${output}" | grep "[Updating HomeBrew]") ]] || exit
   [[ ! -z $(echo "${output}" | grep "brew tap eosio/eosio") ]] || exit
-  [[ ! -z $(echo "${output}" | grep "brew install cmake") ]] || exit
+  [[ ! -z $(echo "${output}" | grep "brew install automake") ]] || exit
   [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
   [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
   [[ ! -z $(echo "${output}" | grep "Executing: /usr/local/bin/cmake") ]] || exit
