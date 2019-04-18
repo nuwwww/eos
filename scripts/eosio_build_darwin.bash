@@ -13,13 +13,13 @@ avail_blks=$(df . | tail -1 | awk '{print $4}')
 DISK_TOTAL=$((total_blks / gbfactor ))
 DISK_AVAIL=$((avail_blks / gbfactor ))
 
-printf "\\nOS name: ${OS_NAME}\\n"
-printf "OS Version: ${OS_VER}\\n"
-printf "CPU cores: %s\\n" "${CPU_CORES}"
-printf "Physical Memory: ${MEM_GIG} Gbytes\\n"
-printf "Disk install: ${DISK_INSTALL}\\n"
-printf "Disk space total: ${DISK_TOTAL}G\\n"
-printf "Disk space available: ${DISK_AVAIL}G\\n"
+echo "\\nOS name: ${OS_NAME}"
+echo "OS Version: ${OS_VER}"
+echo "CPU cores: %s" "${CPU_CORES}"
+echo "Physical Memory: ${MEM_GIG} Gbytes"
+echo "Disk install: ${DISK_INSTALL}"
+echo "Disk space total: ${DISK_TOTAL}G"
+echo "Disk space available: ${DISK_AVAIL}G"
 
 if [ "${MEM_GIG}" -lt 7 ]; then
 	echo "Your system must have 7 or more Gigabytes of physical memory installed."
@@ -39,17 +39,17 @@ if [ "${DISK_AVAIL}" -lt "$DISK_MIN" ]; then
 	exit 1
 fi
 
-printf "\\n"
+echo ""
 
-printf "${COLOR_CYAN}[Checking xcode-select installation]${COLOR_NC}\\n"
-if ! XCODESELECT=$( command -v xcode-select ); then printf " - XCode must be installed in order to proceed!\\n" && exit 1;
-else printf " - XCode installation found @ ${XCODESELECT}\\n"; fi
+echo "${COLOR_CYAN}[Checking xcode-select installation]${COLOR_NC}"
+if ! XCODESELECT=$( command -v xcode-select ); then echo " - XCode must be installed in order to proceed!" && exit 1;
+else echo " - XCode installation found @ ${XCODESELECT}"; fi
 
-printf "${COLOR_CYAN}[Checking Ruby installation]${COLOR_NC}\\n"
-if ! RUBY=$( command -v ruby ); then printf " - Ruby must be installed in order to proceed!\\n" && exit 1;
-else printf " - Ruby installation found @ ${RUBY}\\n"; fi
+echo "${COLOR_CYAN}[Checking Ruby installation]${COLOR_NC}"
+if ! RUBY=$( command -v ruby ); then echo " - Ruby must be installed in order to proceed!" && exit 1;
+else echo " - Ruby installation found @ ${RUBY}"; fi
 
-printf "${COLOR_CYAN}[Checking HomeBrew installation]${COLOR_NC}\\n"
+echo "${COLOR_CYAN}[Checking HomeBrew installation]${COLOR_NC}"
 if ! BREW=$( command -v brew ); then
 	while true; do
 		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC} " PROCEED
@@ -66,35 +66,35 @@ if ! BREW=$( command -v brew ); then
 		esac
 	done
 else
-	printf " - HomeBrew installation found @ ${BREW}\\n"
+	echo " - HomeBrew installation found @ ${BREW}"
 fi
 
 if [ ! -d /usr/local/Frameworks ]; then
-	printf "\\n${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}\\n"
-	printf "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks\\n\\n"
+	echo "\\n${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}"
+	echo "sudo mkdir /usr/local/Frameworks && sudo chown $(whoami):admin /usr/local/Frameworks\\n"
 	exit 1;
 fi
 
-printf "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}\\n"
+echo "\\n${COLOR_CYAN}[Checking HomeBrew dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r name path; do
-	if execute stat $path 2>/dev/null && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
-		printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
+	if execute stat $path &>/dev/null && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+		echo " - ${name} ${COLOR_GREEN}found!${COLOR_NC}"
 		continue
 	fi
 	# resolve conflict with homebrew glibtool and apple/gnu installs of libtool
 	if [[ "${testee}" == "/usr/local/bin/glibtool" ]]; then
 		if [ "${tester}" "/usr/local/bin/libtool" ]; then
-			printf " - ${name} ${COLOR_GREEN}found!${COLOR_NC}\\n"
+			echo " - ${name} ${COLOR_GREEN}found!${COLOR_NC}"
 			continue
 		fi
 	fi
 	DEPS=$DEPS"${name},"
-	printf " - ${name} ${COLOR_RED}NOT${COLOR_NC} found.\\n"
+	echo " - ${name} ${COLOR_RED}NOT${COLOR_NC} found."
 	(( COUNT++ ))
 done < "${REPO_ROOT}/scripts/eosio_build_darwin_deps"
-printf "\n"
+echo "\n"
 if [ $COUNT -gt 1 ]; then
 	while true; do
 		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)${COLOR_NC} " PROCEED
@@ -112,13 +112,13 @@ if [ $COUNT -gt 1 ]; then
 					esac
 				done
 				execute brew tap eosio/eosio
-				printf "${COLOR_GREEN}[Installing HomeBrew Dependencies]${COLOR_NC}\\n"
+				echo "${COLOR_GREEN}[Installing HomeBrew Dependencies]${COLOR_NC}"
 				for DEP in $DEPS; do
 					# Eval to support string/arguments with $DEP
 					execute $BREW install $DEP
 				done
 				IFS="$OIFS"
-				printf "\n"
+				echo "\n"
 			break;;
 			1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
 			* ) echo "Please type 'y' for yes or 'n' for no.";;
@@ -126,11 +126,13 @@ if [ $COUNT -gt 1 ]; then
 	done
 fi
 
+[[ -z "${CMAKE}" ]] && export CMAKE="/usr/local/bin/cmake"
+
 export CPATH="$(python-config --includes | awk '{print $1}' | cut -dI -f2):$CPATH" # Boost has trouble finding pyconfig.h
-printf "${COLOR_CYAN}[Checking Boost $( echo $BOOST_VERSION | sed 's/_/./g' ) library installation]${COLOR_NC}\\n"
-BOOSTVERSION=$( grep "#define BOOST_VERSION" "$HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
+echo "${COLOR_CYAN}[Checking Boost $( echo $BOOST_VERSION | sed 's/_/./g' ) library installation]${COLOR_NC}"
+BOOSTVERSION=$( grep "#define BOOST_VERSION" "$EOSIO_HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
 if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
-	printf "Installing Boost library...\\n"
+	echo "Installing Boost library..."
 	execute bash -c "curl -LO https://dl.bintray.com/boostorg/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
 	&& tar -xjf boost_$BOOST_VERSION.tar.bz2 \
 	&& cd $BOOST_ROOT \
@@ -141,16 +143,16 @@ if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOS
 	&& rm -f boost_$BOOST_VERSION.tar.bz2 \
 	&& rm -rf $BOOST_LINK_LOCATION \
 	&& ln -s $BOOST_ROOT $BOOST_LINK_LOCATION"
-	printf " - Boost library successfully installed @ ${BOOST_ROOT}.\\n"
+	echo " - Boost library successfully installed @ ${BOOST_ROOT}."
 else
-	printf " - Boost library found with correct version @ ${BOOST_ROOT}.\\n"
+	echo " - Boost library found with correct version @ ${BOOST_ROOT}."
 fi
 
-printf "\\n"
+echo ""
 
-printf "${COLOR_CYAN}[Checking MongoDB installation]${COLOR_NC}\\n"
+echo "${COLOR_CYAN}[Checking MongoDB installation]${COLOR_NC}"
 if [[ ! -d $MONGODB_ROOT ]]; then
-	printf "Installing MongoDB into ${MONGODB_ROOT}...\\n"
+	echo "Installing MongoDB into ${MONGODB_ROOT}..."
 	execute bash -c "curl -OL https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-$MONGODB_VERSION.tgz \
 	&& tar -xzf mongodb-osx-ssl-x86_64-$MONGODB_VERSION.tgz \
 	&& mv $SRC_LOCATION/mongodb-osx-x86_64-$MONGODB_VERSION $MONGODB_ROOT \
@@ -162,52 +164,52 @@ if [[ ! -d $MONGODB_ROOT ]]; then
 	&& rm -rf $BIN_LOCATION/mongod \
 	&& ln -s $MONGODB_ROOT $MONGODB_LINK_LOCATION \
 	&& ln -s $MONGODB_LINK_LOCATION/bin/mongod $BIN_LOCATION/mongod"
-	printf " - MongoDB successfully installed @ ${MONGODB_ROOT}\\n"
+	echo " - MongoDB successfully installed @ ${MONGODB_ROOT}"
 else
-	printf " - MongoDB found with correct version @ ${MONGODB_ROOT}.\\n"
+	echo " - MongoDB found with correct version @ ${MONGODB_ROOT}."
 fi
-printf "${COLOR_CYAN}[Checking MongoDB C driver installation]${COLOR_NC}\\n"
+echo "${COLOR_CYAN}[Checking MongoDB C driver installation]${COLOR_NC}"
 if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
-	printf "Installing MongoDB C driver...\\n"
+	echo "Installing MongoDB C driver..."
 	execute bash -c "curl -LO https://github.com/mongodb/mongo-c-driver/releases/download/$MONGO_C_DRIVER_VERSION/mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz \
 	&& tar -xzf mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz \
 	&& cd mongo-c-driver-$MONGO_C_DRIVER_VERSION \
 	&& mkdir -p cmake-build \
 	&& cd cmake-build \
-	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DENABLE_BSON=ON -DENABLE_SSL=DARWIN -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
+	&& $CMAKE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$EOSIO_HOME -DENABLE_BSON=ON -DENABLE_SSL=DARWIN -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_STATIC=ON .. \
 	&& make -j${JOBS} \
 	&& make install \
 	&& cd ../.. \
 	&& rm mongo-c-driver-$MONGO_C_DRIVER_VERSION.tar.gz"
-	printf " - MongoDB C driver successfully installed @ ${MONGO_C_DRIVER_ROOT}.\\n"
+	echo " - MongoDB C driver successfully installed @ ${MONGO_C_DRIVER_ROOT}."
 else
-	printf " - MongoDB C driver found with correct version @ ${MONGO_C_DRIVER_ROOT}.\\n"
+	echo " - MongoDB C driver found with correct version @ ${MONGO_C_DRIVER_ROOT}."
 fi
-printf "${COLOR_CYAN}[Checking MongoDB C++ driver installation]${COLOR_NC}\\n"
-if [[ "$(grep "Version:" $HOME/lib/pkgconfig/libmongocxx-static.pc 2>/dev/null | tr -s ' ' | awk '{print $2}' || true)" != $MONGO_CXX_DRIVER_VERSION ]]; then
-	printf "Installing MongoDB C++ driver...\\n"
+echo "${COLOR_CYAN}[Checking MongoDB C++ driver installation]${COLOR_NC}"
+if [[ "$(grep "Version:" $EOSIO_HOME/lib/pkgconfig/libmongocxx-static.pc 2>/dev/null | tr -s ' ' | awk '{print $2}' || true)" != $MONGO_CXX_DRIVER_VERSION ]]; then
+	echo "Installing MongoDB C++ driver..."
 	execute bash -c "curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r${MONGO_CXX_DRIVER_VERSION}.tar.gz -o mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& tar -xzf mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}.tar.gz \
 	&& cd mongo-cxx-driver-r${MONGO_CXX_DRIVER_VERSION}/build \
-	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
+	&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$EOSIO_HOME .. \
 	&& make -j${JOBS} VERBOSE=1 \
 	&& make install \
 	&& cd ../.. \
 	&& rm -f mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz"
-	printf " - MongoDB C++ driver successfully installed @ ${MONGO_CXX_DRIVER_ROOT}.\\n"
+	echo " - MongoDB C++ driver successfully installed @ ${MONGO_CXX_DRIVER_ROOT}."
 else
-	printf " - MongoDB C++ driver found with correct version @ ${MONGO_CXX_DRIVER_ROOT}.\\n"
+	echo " - MongoDB C++ driver found with correct version @ ${MONGO_CXX_DRIVER_ROOT}."
 fi
 
-printf "\\n"
+echo ""
 
 # We install llvm into /usr/local/opt using brew install llvm@4
-printf "${COLOR_CYAN}[Checking LLVM 4 support}${COLOR_NC}\\n"
+echo "${COLOR_CYAN}[Checking LLVM 4 support}${COLOR_NC}"
 if [[ ! -d $LLVM_ROOT ]]; then
 	execute ln -s /usr/local/opt/llvm@4 $LLVM_ROOT
-	printf " - LLVM successfully linked from /usr/local/opt/llvm@4 to ${LLVM_ROOT}\\n"
+	echo " - LLVM successfully linked from /usr/local/opt/llvm@4 to ${LLVM_ROOT}"
 else
-	printf " - LLVM found @ ${LLVM_ROOT}.\\n"
+	echo " - LLVM found @ ${LLVM_ROOT}."
 fi
 
 function print_instructions() {

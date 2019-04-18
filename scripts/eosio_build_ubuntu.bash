@@ -92,6 +92,7 @@ if [[ ! -e "${CMAKE}" ]]; then
 	&& cd .. \
 	&& rm -f cmake-${CMAKE_VERSION}.tar.gz"
 	echo " - CMAKE successfully installed @ ${CMAKE}"
+	[[ -z "${CMAKE}" ]] && export CMAKE="${EOSIO_HOME}/bin/cmake"
 else
 	echo " - CMAKE found @ ${CMAKE}."
 fi

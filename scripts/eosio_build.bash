@@ -135,7 +135,7 @@ fi
 
 if [ "$ARCH" == "Darwin" ]; then
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
-   # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
+   # EOSIO_HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$EOSIO_HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
    FILE="${SCRIPT_DIR}/eosio_build_darwin.bash"
    CXX_COMPILER=clang++
