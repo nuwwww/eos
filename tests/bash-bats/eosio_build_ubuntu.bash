@@ -26,9 +26,11 @@ TEST_LABEL="[eosio_build_ubuntu]"
 }
 
 @test "${TEST_LABEL} > Testing CMAKE Install" {
-    export CMAKE="/etc/fstab" # file just needs to exist
+    export CMAKE="$HOME/cmake" # file just needs to exist
+    touch $CMAKE
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
-    [[ ! -z $(echo "${output}" | grep "CMAKE found @ /etc/fstab") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "CMAKE found @ ${CMAKE}") ]] || exit
+    rm -f $CMAKE
     export CMAKE=
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
@@ -38,7 +40,8 @@ TEST_LABEL="[eosio_build_ubuntu]"
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/apt-get update") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "Executing: dpkg-query -l make") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "apt found!") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "make NOT found.") ]] || exit
     [[ ! -z $(echo "${output}" | grep "mongodb-linux-x86_64-ubuntu.*04-") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit

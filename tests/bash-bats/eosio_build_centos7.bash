@@ -25,9 +25,11 @@ TEST_LABEL="[eosio_build_centos7]"
 }
 
 @test "${TEST_LABEL} > Testing CMAKE Install" {
-    export CMAKE="/etc/fstab" # file just needs to exist
+    export CMAKE="$HOME/cmake" # file just needs to exist
+    touch $CMAKE
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
-    [[ ! -z $(echo "${output}" | grep "CMAKE found @ /etc/fstab") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "CMAKE found @ ${CMAKE}") ]] || exit
+    rm -f $CMAKE
     export CMAKE=
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
@@ -38,7 +40,8 @@ TEST_LABEL="[eosio_build_centos7]"
     ### Make sure deps are loaded properly
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: sudo /usr/bin/yum -y update") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "Executing: rpm -qa make") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "python found!") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "sudo NOT found.") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Installing CMAKE") ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit

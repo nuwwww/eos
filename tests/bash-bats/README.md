@@ -44,3 +44,4 @@ For each bash script we have, there should be a separate .bash file within ROOT/
 
       22 tests, 0 failures
       ```
+      - Use -t option for better output (required when using debug to see output)

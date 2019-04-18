@@ -46,7 +46,7 @@ echo "${COLOR_CYAN}[Checking for installed package dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r testee tester; do
-	if execute $tester $testee && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+	if [[ ! -z $(eval $tester $testee 2>/dev/null) ]]; then
 		echo " - ${testee} ${COLOR_GREEN}found!${COLOR_NC}"
 	else
 		DEPS=$DEPS"${testee},"

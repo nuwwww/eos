@@ -95,7 +95,7 @@ echo "${COLOR_CYAN}[Checking RPM for installed dependencies]${COLOR_NC}"
 OLDIFS="$IFS"
 IFS=$','
 while read -r testee tester; do
-	if execute $tester $testee && [[ $DRYRUN == false ]]; then # DRYRUN TO SUPPORT TESTS
+	if [[ ! -z $(eval $tester $testee) ]]; then
 		echo " - ${testee} ${COLOR_GREEN}found!${COLOR_NC}"
 	else
 		DEPS=$DEPS"${testee},"
