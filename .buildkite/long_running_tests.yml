@@ -34,7 +34,7 @@ steps:
     artifact_paths: "build.tar.gz"
     plugins:
       ecr#v1.1.4:
-        login: true
+        login: true 
         account_ids: "436617320021"
         no-include-email: true
         region: "us-west-2"
